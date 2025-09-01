@@ -1,0 +1,8 @@
+{
+  "task_id": "demo_20250831_180000_000001",
+  "task_name": "data_analysis",
+  "timestamp": "20250831_180104",
+  "success": true,
+  "output_file": "tests/outputs/file_output_demo/data_analysis/demo_20250831_180000_000001_report.md",
+  "result_length": 173
+}

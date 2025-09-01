@@ -1,0 +1,156 @@
+# 工房システム設定ファイル
+# Version: 2.0
+
+system:
+  name: koubou-system
+  version: 2.0
+  description: "共通基盤型AIエージェント協調システム"
+
+# 現在の親方エージェント
+# claude-code, codex-cli, gemini-cli から選択
+master_agent: claude-code
+
+# 利用可能なエージェント設定
+available_agents:
+  claude-code:
+    enabled: true
+    primary: true
+    config:
+      mcp_enabled: true
+      hooks_enabled: true
+      tools:
+        - file
+        - bash
+        - web
+        - task
+        - todo
+      
+  codex-cli:
+    enabled: false
+    primary: false
+    config:
+      config_path: /var/koubou/config/codex-config.toml
+      sandbox_mode: workspace-write
+      auto_approve: true
+      
+  gemini-cli:
+    enabled: false
+    primary: false
+    config:
+      project_path: /home/user/project
+      non_interactive: true
+
+# ワーカー設定
+workers:
+  local:
+    enabled: true
+    type: local
+    model: gpt-oss-20b
+    endpoint: http://localhost:1234/v1
+    max_concurrent: 3
+    timeout_seconds: 120
+    retry_attempts: 2
+    
+  # 将来のクラウドワーカー設定（現在は無効）
+  cloud_gpt5:
+    enabled: false
+    type: cloud
+    model: gpt-5-medium
+    endpoint: https://api.openai.com/v1
+    api_key_env: OPENAI_API_KEY
+    max_concurrent: 2
+    rate_limit_rpm: 30
+    
+# タスクルーティングルール
+routing:
+  default_worker: local
+  
+  rules:
+    # 機密データは必ずローカル
+    - condition:
+        sensitivity_level: confidential
+      action:
+        worker: local
+        priority_boost: 2
+    
+    # 実装テストフェーズは全てローカル
+    - condition:
+        any: true
+      action:
+        worker: local
+        
+    # 将来のルール例
+    # - condition:
+    #     difficulty_level: high
+    #     sensitivity_level: public
+    #   action:
+    #     worker: cloud_gpt5
+
+# セキュリティポリシー
+security:
+  # 機密データパターン（正規表現）
+  sensitive_patterns:
+    - 'password\s*[:=]'
+    - 'api[_-]?key\s*[:=]'
+    - 'secret\s*[:=]'
+    - 'token\s*[:=]'
+    - 'private[_-]?key'
+    - '\b\d{3}-\d{2}-\d{4}\b'  # SSN
+    - '\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b'  # Credit card
+    
+  # データ分類
+  data_classification:
+    confidential:
+      - personal_info
+      - credentials
+      - financial_data
+    internal:
+      - source_code
+      - business_logic
+    public:
+      - documentation
+      - general_queries
+
+# システム設定
+system_config:
+  # ログ設定
+  logging:
+    level: INFO  # DEBUG, INFO, WARN, ERROR
+    max_file_size_mb: 100
+    retention_days: 30
+    
+  # データベース設定
+  database:
+    path: /var/koubou/db/koubou.db
+    backup_enabled: true
+    backup_interval_hours: 24
+    
+  # モニタリング設定
+  monitoring:
+    enabled: true
+    heartbeat_interval_seconds: 30
+    stuck_task_timeout_minutes: 30
+    worker_offline_threshold_minutes: 5
+    
+  # パフォーマンス設定
+  performance:
+    max_parallel_tasks: 10
+    task_queue_size: 100
+    worker_pool_size: 3
+
+# 通知設定（将来実装）
+notifications:
+  enabled: false
+  channels:
+    slack:
+      enabled: false
+      webhook_url: ""
+    email:
+      enabled: false
+      smtp_server: ""
+      
+# 実験的機能
+experimental:
+  auto_scaling: false
+  task_prediction: false
+  cost_optimization: false

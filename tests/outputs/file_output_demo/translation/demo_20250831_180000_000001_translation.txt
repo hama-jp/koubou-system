@@ -1,0 +1,12 @@
+Translation Result
+Task ID: demo_20250831_180000_000001
+Generated: 20250831_180104
+Status: Success
+
+---
+
+原文: システムの動作を確認してください
+翻訳: Please check the system operation
+
+原文: エラーが発生しました
+翻訳: An error has occurred

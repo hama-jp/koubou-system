@@ -1,0 +1,8 @@
+{
+  "task_id": "demo_20250831_180000_000001",
+  "task_name": "simple_text_generation",
+  "timestamp": "20250831_180104",
+  "success": true,
+  "output_file": "tests/outputs/file_output_demo/text_generation/demo_20250831_180000_000001_result.txt",
+  "result_length": 202
+}

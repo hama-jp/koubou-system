@@ -1,0 +1,87 @@
+# 工房システム - ワーカー設定ファイル
+# ローカルワーカーとリモートワーカーの設定
+
+workers:
+  # ローカルワーカー設定
+  local_workers:
+    - worker_id: "local_001"
+      worker_type: "local"
+      model: "gpt-oss:20b"
+      server_host: "http://localhost:11434"
+      performance_factor: 1.0
+      max_concurrent_tasks: 2
+      max_tokens: 32768  # 32k tokens
+      
+    - worker_id: "local_002"
+      worker_type: "local"
+      model: "gpt-oss:20b"
+      server_host: "http://localhost:11434"
+      performance_factor: 1.0
+      max_concurrent_tasks: 2
+      max_tokens: 32768  # 32k tokens
+      
+  # リモートワーカー設定（デフォルト無効）
+  # 性能テスト結果: ローカルの約8倍遅い（233秒 vs 30秒/件）
+  # 用途: 夜間バッチ、緊急時バックアップ、特殊な翻訳タスクのみ
+  remote_workers: []
+  # remote_workers:  # 必要時にコメントアウト解除
+  #   - worker_id: "remote_lan_001"
+  #     worker_type: "remote"
+  #     model: "gpt-oss:20b"
+  #     remote_host: "192.168.11.6"
+  #     remote_port: 11434
+  #     performance_factor: 0.1  # 性能を現実的に設定
+  #     max_concurrent_tasks: 1
+  #     network_timeout: 300
+  #     max_tokens: 16384  # 16k tokens (リモートは控えめに)
+  #     capabilities:
+  #       - "translation"     # 翻訳専用
+  #       - "documentation"   # ドキュメント作成
+  #       - "simple_tasks"    # 簡単なタスクのみ
+
+# ルーティングポリシー
+routing_policy:
+  strategy: "priority_based"
+  
+  # 優先度ベースのルール
+  rules:
+    - priority_range: [8, 10]
+      preferred_workers: ["local"]
+      reason: "高優先度タスクは高速なローカル処理"
+      
+    - priority_range: [5, 7]
+      preferred_workers: ["local", "remote"]
+      reason: "中優先度は負荷分散"
+      load_balancing: true
+      
+    - priority_range: [1, 4]
+      preferred_workers: ["remote"]
+      fallback_to_local: true
+      reason: "低優先度はリモート優先でローカルリソース温存"
+
+# パフォーマンス設定
+performance:
+  # メトリクス収集間隔（秒）
+  metrics_interval: 60
+  
+  # パフォーマンスファクター自動調整
+  auto_adjust_performance: true
+  adjustment_interval: 1800  # 30分ごと
+  
+  # タイムアウト設定
+  default_timeout: 120
+  remote_timeout: 300
+
+# ヘルスチェック設定
+health_check:
+  interval: 15  # ヘルスチェック実行間隔（15秒）
+  timeout: 90   # オフライン判定タイムアウト（90秒）- ハートビート間隔の6倍に設定
+  max_failures: 3  # 連続失敗許容回数
+  
+# ワーカープール設定
+pool:
+  min_workers: 1
+  max_workers: 5
+  max_active_tasks: 3
+  scale_up_threshold: 0.8   # 負荷80%で拡張
+  scale_down_threshold: 0.3 # 負荷30%で縮小

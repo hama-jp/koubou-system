@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<HTA:APPLICATION 
+    ID="DailyCalendarWidget"
+    APPLICATIONNAME="日めくりカレンダー"
+    BORDER="none"
+    BORDERSTYLE="normal"
+    CAPTION="no"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    VERSION="1.0"
+    WINDOWSTATE="normal"
+    SCROLL="no"
+    CONTEXTMENU="no"
+    SELECTION="no"
+/>
+<meta charset="UTF-8">
+<title>日めくりカレンダー</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Yu Gothic', 'Meiryo', 'MS PGothic', sans-serif;
+  background: #f0f0f0;
+  overflow: hidden;
+  cursor: move;
+}
+
+#widget {
+  width: 200px;
+  height: 220px;
+  padding: 15px;
+  background: #ffffff;
+  border: 1px solid #cccccc;
+  text-align: center;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #ff4444;
+  border: none;
+  cursor: pointer;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.header {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.date-number {
+  font-size: 72px;
+  font-weight: bold;
+  display: block;
+  line-height: 1;
+  color: #333;
+  margin: 10px 0;
+}
+
+.weekday {
+  font-size: 24px;
+  margin-top: 10px;
+  display: block;
+  font-weight: bold;
+}
+
+.weekday-sat { color: #1e90ff; }
+.weekday-sun { color: #ff4500; }
+.weekday-holiday { color: #ff4500; }
+.weekday-weekday { color: #333; }
+
+.sixyo {
+  font-size: 16px;
+  color: #888;
+  margin-top: 15px;
+  padding: 4px 12px;
+  background: #f5f5f5;
+  display: inline-block;
+}
+</style>
+<script language="JavaScript">
+// グローバル変数
+var dragStartX = 0;
+var dragStartY = 0;
+var isDragging = false;
+
+// ドラッグ開始
+function startDrag() {
+  if (window.event.srcElement.className == 'close-btn') return;
+  
+  isDragging = true;
+  dragStartX = window.event.clientX;
+  dragStartY = window.event.clientY;
+  return false;
+}
+
+// ドラッグ中
+function doDrag() {
+  if (!isDragging) return;
+  
+  var x = window.event.clientX;
+  var y = window.event.clientY;
+  
+  window.moveBy(x - dragStartX, y - dragStartY);
+  return false;
+}
+
+// ドラッグ終了
+function stopDrag() {
+  isDragging = false;
+}
+
+// ウィンドウを閉じる
+function closeWindow() {
+  window.close();
+}
+
+// カレンダー更新
+function updateCalendar() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth() + 1;
+  var date = now.getDate();
+  var day = now.getDay();
+  
+  var weekdays = new Array('日', '月', '火', '水', '木', '金', '土');
+  var sixyoList = new Array('大安', '仏滅', '赤口', '先勝', '友引', '先負');
+  
+  // 月年表示
+  document.getElementById('month-year').innerText = year + '年' + month + '月';
+  
+  // 日付表示
+  document.getElementById('date-number').innerText = date;
+  
+  // 曜日表示
+  var weekdayEl = document.getElementById('weekday');
+  weekdayEl.innerText = weekdays[day] + '曜日';
+  
+  // 曜日の色分け
+  weekdayEl.className = 'weekday';
+  if (day == 0) {
+    weekdayEl.className = 'weekday weekday-sun';
+  } else if (day == 6) {
+    weekdayEl.className = 'weekday weekday-sat';
+  } else {
+    weekdayEl.className = 'weekday weekday-weekday';
+  }
+  
+  // 祝日チェック
+  if (isHoliday(month, date)) {
+    weekdayEl.className = 'weekday weekday-holiday';
+  }
+  
+  // 六曜
+  var sixyoIndex = (month + date) % 6;
+  document.getElementById('sixyo').innerText = sixyoList[sixyoIndex];
+}
+
+// 祝日判定
+function isHoliday(month, date) {
+  // 2024-2025年の主要な祝日
+  var holidays = new Array(
+    '1-1',   // 元日
+    '1-8',   // 成人の日（1月第2月曜）
+    '2-11',  // 建国記念の日
+    '2-23',  // 天皇誕生日
+    '3-20',  // 春分の日
+    '4-29',  // 昭和の日
+    '5-3',   // 憲法記念日
+    '5-4',   // みどりの日
+    '5-5',   // こどもの日
+    '7-15',  // 海の日（7月第3月曜）
+    '8-11',  // 山の日
+    '9-16',  // 敬老の日（9月第3月曜）
+    '9-23',  // 秋分の日
+    '10-14', // スポーツの日（10月第2月曜）
+    '11-3',  // 文化の日
+    '11-23'  // 勤労感謝の日
+  );
+  
+  var dateStr = month + '-' + date;
+  
+  for (var i = 0; i < holidays.length; i++) {
+    if (holidays[i] == dateStr) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// 初期化
+function init() {
+  // ウィンドウサイズ設定
+  window.resizeTo(220, 250);
+  
+  // 画面右下に配置
+  var screenWidth = window.screen.availWidth;
+  var screenHeight = window.screen.availHeight;
+  window.moveTo(screenWidth - 240, screenHeight - 300);
+  
+  // カレンダー更新
+  updateCalendar();
+  
+  // 1秒ごとに更新
+  window.setInterval('updateCalendar()', 60000);
+}
+</script>
+</head>
+<body onload="init()" onmousedown="startDrag()" onmousemove="doDrag()" onmouseup="stopDrag()">
+
+<div id="widget">
+  <button class="close-btn" onclick="closeWindow()">×</button>
+  
+  <div class="header">
+    <span id="month-year"></span>
+  </div>
+  
+  <div class="date-container">
+    <span id="date-number" class="date-number"></span>
+    <span id="weekday" class="weekday"></span>
+  </div>
+  
+  <div class="footer">
+    <span id="sixyo" class="sixyo"></span>
+  </div>
+</div>
+
+</body>
+</html>

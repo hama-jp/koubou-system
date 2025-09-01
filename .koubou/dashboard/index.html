@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏭 工房システム ダッシュボード</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+        
+        /* ヘッダー */
+        header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 28px;
+        }
+        
+        .system-status {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        
+        .status-indicator.online { color: #10b981; }
+        .status-indicator.offline { color: #ef4444; }
+        
+        .pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .pulse.green { background: #10b981; }
+        .pulse.red { background: #ef4444; }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        /* メインレイアウト */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 20px;
+        }
+        
+        /* カード共通スタイル */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f3f4f6;
+        }
+        
+        .card-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* ターミナルスタイル */
+        .terminal-section {
+            background: #1e1e1e;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .terminal-header {
+            background: #2d2d2d;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #3d3d3d;
+        }
+        
+        .terminal-title {
+            color: #f0f0f0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .terminal-controls {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .terminal-btn {
+            background: #3d3d3d;
+            color: #f0f0f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        
+        .terminal-btn:hover {
+            background: #4d4d4d;
+        }
+        
+        .terminal-tabs {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid #3d3d3d;
+        }
+        
+        .terminal-tab {
+            background: transparent;
+            color: #888;
+            border: 1px solid #3d3d3d;
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .terminal-tab.active {
+            background: #3d3d3d;
+            color: #f0f0f0;
+            border-color: #4d4d4d;
+        }
+        
+        .terminal-output {
+            flex: 1;
+            padding: 15px 20px;
+            overflow-y: auto;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 600px;
+        }
+        
+        .log-entry {
+            display: flex;
+            gap: 10px;
+            padding: 4px 0;
+            border-bottom: 1px solid #2d2d2d;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .log-time {
+            color: #666;
+            min-width: 80px;
+        }
+        
+        .log-worker {
+            color: #a78bfa;
+            min-width: 120px;
+        }
+        
+        .log-type {
+            min-width: 20px;
+        }
+        
+        .log-message {
+            color: #e0e0e0;
+            flex: 1;
+        }
+        
+        .log-entry.info .log-message { color: #93c5fd; }
+        .log-entry.success .log-message { color: #86efac; }
+        .log-entry.warning .log-message { color: #fde047; }
+        .log-entry.error .log-message { color: #fca5a5; }
+        .log-entry.processing .log-message { color: #c4b5fd; }
+        
+        .terminal-status {
+            background: #2d2d2d;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #3d3d3d;
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .terminal-info {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .token-warning {
+            color: #fbbf24;
+            font-size: 11px;
+        }
+        
+        /* ワーカーグリッド */
+        .workers-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .worker-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .worker-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .worker-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .worker-icon {
+            font-size: 32px;
+        }
+        
+        .worker-details h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .worker-meta {
+            color: #6b7280;
+            font-size: 12px;
+        }
+        
+        .worker-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .worker-status.idle {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .worker-status.working {
+            background: #fef3c7;
+            color: #92400e;
+            position: relative;
+        }
+        
+        .worker-status.working::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: #f59e0b;
+            border-radius: 50%;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: translateY(-50%) scale(1); opacity: 1; }
+            50% { transform: translateY(-50%) scale(1.2); opacity: 0.7; }
+        }
+        
+        .worker-status.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .worker-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 8px;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .stat-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 11px;
+        }
+        
+        /* タスク表示 */
+        .current-task {
+            margin-top: 10px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #4b5563;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header>
+            <h1>
+                🏭 工房システム
+                <span style="font-size: 16px; color: #6b7280;">Worker Dashboard</span>
+            </h1>
+            <div class="system-status">
+                <div class="status-indicator online">
+                    <span class="pulse green"></span>
+                    System Online
+                </div>
+                <div id="connection-status" class="status-indicator online">
+                    <span id="connection-pulse" class="pulse green"></span>
+                    <span id="connection-text">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインレイアウト -->
+        <div class="main-layout">
+            <!-- 左側：ターミナル -->
+            <div class="terminal-section">
+                <div class="terminal-header">
+                    <div class="terminal-title">
+                        💻 ワーカー出力ターミナル
+                        <span id="selected-worker" style="color: #a78bfa; font-size: 14px;">
+                            (全ワーカー)
+                        </span>
+                    </div>
+                    <div class="terminal-controls">
+                        <button class="terminal-btn" onclick="toggleAutoScroll()">
+                            🔽 自動スクロール
+                        </button>
+                        <button class="terminal-btn" onclick="clearTerminal()">
+                            🗑️ クリア
+                        </button>
+                        <button class="terminal-btn" onclick="togglePause()">
+                            ⏸️ 一時停止
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="terminal-tabs">
+                    <button class="terminal-tab active" onclick="selectWorkerTab('all')">
+                        すべて
+                    </button>
+                    <button class="terminal-tab" onclick="selectWorkerTab('local')">
+                        ローカル
+                    </button>
+                    <button class="terminal-tab" onclick="selectWorkerTab('remote')">
+                        リモート
+                    </button>
+                    <button class="terminal-tab" onclick="selectWorkerTab('errors')">
+                        エラーのみ
+                    </button>
+                </div>
+                
+                <div id="terminal-output" class="terminal-output">
+                    <!-- ログエントリがここに動的に追加される -->
+                </div>
+                
+                <div class="terminal-status">
+                    <div class="terminal-info">
+                        <span id="log-count">0</span> エントリ | 
+                        <span id="log-rate">0</span> msg/s
+                    </div>
+                    <div>
+                        <span class="token-warning">
+                            ⚠️ トークン節約モード: 最新100行のみ表示
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：ワーカープールとタスクキュー -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- タスクキュー -->
+                <div class="card" style="flex: 0 0 auto;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            📋 タスクキュー
+                            <span id="task-stats" style="font-size: 14px; color: #6b7280;">
+                                (待機: 0 | 処理中: 0)
+                            </span>
+                        </h2>
+                        <button onclick="refreshTaskQueue()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔄 更新
+                        </button>
+                    </div>
+                    <div id="task-queue-container" style="max-height: 300px; overflow-y: auto;">
+                        <!-- タスクアイテムがここに表示される -->
+                    </div>
+                </div>
+                
+                <!-- ワーカープール -->
+                <div class="card" style="flex: 1;">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            👷 ワーカープール
+                            <span id="worker-count" style="font-size: 14px; color: #6b7280;">(0 workers)</span>
+                        </h2>
+                        <button onclick="refreshWorkers()" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            🔄 更新
+                        </button>
+                    </div>
+                    <div id="workers-container" class="workers-grid">
+                        <!-- ワーカーカードがここに動的に追加される -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状態管理
+        let autoScroll = true;
+        let isPaused = false;
+        let selectedWorker = 'all';
+        let logBuffer = [];
+        let maxLogEntries = 100; // トークン節約のため最大100行
+        let messageRate = 0;
+        let lastMessageTime = Date.now();
+        
+        // APIから取得したデータを格納
+        let currentWorkers = [];
+        let currentTasks = [];
+        let processedLogs = new Set(); // 重複ログ防止用
+        
+        // ターミナル操作
+        function toggleAutoScroll() {
+            autoScroll = !autoScroll;
+        }
+        
+        function clearTerminal() {
+            document.getElementById('terminal-output').innerHTML = '';
+            logBuffer = [];
+            processedLogs.clear();
+            updateLogStats();
+        }
+        
+        function togglePause() {
+            isPaused = !isPaused;
+        }
+        
+        function selectWorkerTab(workerId) {
+            document.querySelectorAll('.terminal-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            selectedWorker = workerId;
+            
+            // フィルタリング表示を更新
+            const displayName = workerId === 'all' ? '全ワーカー' : 
+                              workerId === 'local' ? 'ローカルのみ' :
+                              workerId === 'remote' ? 'リモートのみ' :
+                              'エラーのみ';
+            document.getElementById('selected-worker').textContent = `(${displayName})`;
+            
+            // ログをフィルタリング
+            filterLogs();
+        }
+        
+        function filterLogs() {
+            const entries = document.querySelectorAll('.log-entry');
+            entries.forEach(entry => {
+                const worker = entry.querySelector('.log-worker').textContent;
+                const isError = entry.classList.contains('error');
+                
+                let show = true;
+                if (selectedWorker === 'local' && !worker.includes('local')) show = false;
+                if (selectedWorker === 'remote' && !worker.includes('remote')) show = false;
+                if (selectedWorker === 'errors' && !isError) show = false;
+                
+                entry.style.display = show ? 'flex' : 'none';
+            });
+        }
+        
+        // ログエントリ追加
+        function addLogEntry(worker, type, message) {
+            const terminal = document.getElementById('terminal-output');
+            const timestamp = new Date().toLocaleTimeString('ja-JP');
+            
+            // ログバッファに追加
+            logBuffer.push({ timestamp, worker, type, message });
+            
+            // トークン節約: 古いエントリを削除
+            if (terminal.children.length >= maxLogEntries) {
+                terminal.removeChild(terminal.firstChild);
+            }
+            
+            // タイプアイコン
+            const typeIcons = {
+                'info': 'ℹ️',
+                'success': '✅',
+                'warning': '⚠️',
+                'error': '❌',
+                'processing': '🔄'
+            };
+            const typeIcon = typeIcons[type] || '📝';
+            
+            // エントリ作成
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            const logKey = `${timestamp}_${worker}_${message}`;
+            entry.dataset.logKey = logKey;
+            entry.innerHTML = `
+                <span class="log-time">${timestamp}</span>
+                <span class="log-worker">[${worker}]</span>
+                <span class="log-type">${typeIcon}</span>
+                <span class="log-message">${message}</span>
+            `;
+            
+            terminal.appendChild(entry);
+            
+            // フィルタ適用
+            if (selectedWorker !== 'all') {
+                filterLogs();
+            }
+            
+            // 自動スクロール
+            if (autoScroll) {
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+            
+            // メッセージレート更新
+            messageRate++;
+            updateLogStats();
+        }
+        
+        function updateLogStats() {
+            document.getElementById('log-count').textContent = document.querySelectorAll('.log-entry').length;
+            document.getElementById('log-rate').textContent = messageRate.toFixed(1);
+        }
+        
+        // ワーカーカード描画
+        function renderWorker(worker) {
+            const statusClass = worker.status || 'offline';
+            const statusText = statusClass === 'idle' ? 'アイドル' : 
+                             statusClass === 'working' ? 'working' : 
+                             statusClass === 'busy' ? 'working' :
+                             statusClass === 'processing' ? 'working' :
+                             'オフライン';
+            const statusEmoji = statusClass === 'idle' ? '💤' : 
+                              statusClass === 'working' || statusClass === 'busy' || statusClass === 'processing' ? '⚙️' : 
+                              '🔌';
+            
+            const locationIcon = worker.location === 'remote' ? '🌐' : '💻';
+            
+            let currentTaskHtml = '';
+            if (worker.current_task && worker.current_task_content) {
+                currentTaskHtml = `
+                    <div class="current-task">
+                        📝 ${worker.current_task}: ${worker.current_task_content}
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="worker-card" onclick="selectWorker('${worker.worker_id}')">
+                    <div class="worker-info">
+                        <div class="worker-icon">${locationIcon}</div>
+                        <div class="worker-details">
+                            <h3>${worker.worker_id}</h3>
+                            <div class="worker-meta">
+                                Performance: ${worker.performance_factor}x
+                            </div>
+                            <div class="worker-stats">
+                                <div class="stat">
+                                    <span class="stat-value">✅ ${worker.tasks_completed || 0}</span>
+                                    <span class="stat-label">完了</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value">❌ ${worker.tasks_failed || 0}</span>
+                                    <span class="stat-label">失敗</span>
+                                </div>
+                            </div>
+                            ${currentTaskHtml}
+                        </div>
+                    </div>
+                    <div class="worker-status ${statusClass}">
+                        ${statusEmoji} ${statusText}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function selectWorker(workerId) {
+            selectedWorker = selectedWorker === workerId ? 'all' : workerId;
+            document.getElementById('selected-worker').textContent = 
+                selectedWorker === 'all' ? '(全ワーカー)' : `(${selectedWorker})`;
+            filterLogs();
+        }
+        
+        function updateWorkers(workers = currentWorkers) {
+            const container = document.getElementById('workers-container');
+            if (workers.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">ワーカーが起動していません</div>';
+                document.getElementById('worker-count').textContent = '(0 workers)';
+                return;
+            }
+            container.innerHTML = workers.map(renderWorker).join('');
+            document.getElementById('worker-count').textContent = `(${workers.length} workers)`;
+        }
+        
+        // API通信
+        async function fetchWorkers() {
+            try {
+                const response = await fetch('http://localhost:8768/api/workers/status');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    currentWorkers = data.workers || [];
+                    updateWorkers(currentWorkers);
+                    updateConnectionStatus('online');
+                }
+            } catch (error) {
+                console.error('Failed to fetch workers:', error);
+                updateConnectionStatus('offline');
+            }
+        }
+        
+        async function fetchLogs() {
+            if (isPaused) return;
+            
+            try {
+                const response = await fetch('http://localhost:8768/api/logs/recent?limit=50');
+                const data = await response.json();
+                
+                if (data.status === 'success' && data.logs) {
+                    data.logs.forEach(log => {
+                        const logKey = `${log.timestamp}_${log.worker}_${log.message}`;
+                        if (!processedLogs.has(logKey)) {
+                            processedLogs.add(logKey);
+                            addLogEntry(log.worker || 'system', log.type || 'info', log.message);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+            }
+        }
+        
+        async function fetchTaskQueue() {
+            try {
+                const response = await fetch('http://localhost:8768/api/tasks/queue');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    updateTaskQueueDisplay(data.tasks, data.stats);
+                }
+            } catch (error) {
+                console.error('Failed to fetch task queue:', error);
+                updateTaskQueueDisplay([], { pending: 0, in_progress: 0, completed_last_hour: 0 });
+            }
+        }
+        
+        function updateTaskQueueDisplay(tasks, stats) {
+            // 統計情報更新
+            document.getElementById('task-stats').textContent = 
+                `(待機: ${stats.pending} | 処理中: ${stats.in_progress} | 完了/時: ${stats.completed_last_hour})`;
+            
+            // タスクリスト更新
+            const container = document.getElementById('task-queue-container');
+            
+            if (tasks.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: #6b7280;">
+                        📭 タスクキューは空です
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tasks.map(task => {
+                const statusIcon = task.status === 'pending' ? '⏸️' : '⚙️';
+                const priorityColor = task.priority >= 8 ? '#ef4444' : 
+                                     task.priority >= 5 ? '#f59e0b' : '#6b7280';
+                
+                return `
+                    <div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span>${statusIcon}</span>
+                                    <span style="font-weight: 600; color: #1f2937;">${task.task_id}</span>
+                                    <span style="padding: 2px 8px; background: ${priorityColor}22; color: ${priorityColor}; border-radius: 4px; font-size: 12px;">
+                                        優先度: ${task.priority}
+                                    </span>
+                                </div>
+                                <div style="margin-top: 4px; color: #6b7280; font-size: 14px;">
+                                    ${task.prompt_preview}
+                                </div>
+                                ${task.assigned_to ? `
+                                    <div style="margin-top: 4px; color: #9ca3af; font-size: 12px;">
+                                        → ${task.assigned_to}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function updateConnectionStatus(status) {
+            const indicator = document.getElementById('connection-status');
+            const pulse = document.getElementById('connection-pulse');
+            const text = document.getElementById('connection-text');
+            
+            if (status === 'online') {
+                indicator.className = 'status-indicator online';
+                pulse.className = 'pulse green';
+                text.textContent = 'Connected';
+            } else {
+                indicator.className = 'status-indicator offline';
+                pulse.className = 'pulse red';
+                text.textContent = 'Disconnected';
+            }
+        }
+        
+        async function refreshWorkers() {
+            await fetchWorkers();
+        }
+        
+        async function refreshTaskQueue() {
+            await fetchTaskQueue();
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初期データ取得
+            fetchWorkers();
+            fetchTaskQueue();
+            fetchLogs();
+            
+            // 定期更新
+            setInterval(fetchWorkers, 5000);  // ワーカー状態を5秒ごと
+            setInterval(fetchTaskQueue, 10000);  // タスクキューを10秒ごと
+            setInterval(fetchLogs, 2000);  // ログを2秒ごと
+            
+            // 統計更新
+            setInterval(() => {
+                if (messageRate > 0) messageRate--;
+                updateLogStats();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

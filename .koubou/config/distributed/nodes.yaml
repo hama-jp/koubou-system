@@ -1,0 +1,220 @@
+# 分散ワーカーノード設定
+# 各ノードの構成とデプロイメント設定
+
+# マスターノード設定
+master:
+  node_id: master-01
+  location: tokyo
+  queue_type: redis  # local, redis, rabbitmq
+  routing_strategy: capability_based  # load_balanced, round_robin, geographic, capability_based
+  redis:
+    host: localhost
+    port: 6379
+    db: 0
+  monitoring:
+    health_check_interval: 30
+    node_timeout: 60
+
+# ワーカーノード設定
+workers:
+  # 東京ノード - 高性能コード生成特化
+  tokyo-01:
+    location: ap-northeast-1
+    master_host: localhost
+    queue_type: redis
+    capacity:
+      max_workers: 8
+      max_memory_gb: 32
+      has_gpu: true
+    capabilities:
+      - code
+      - heavy_computation
+      - general
+    llm_config:
+      type: ollama
+      model: gpt-oss:20b
+      endpoint: http://localhost:11434
+    specialization: "高性能コード生成"
+    auto_scale:
+      enabled: true
+      min_workers: 2
+      max_workers: 8
+      scale_up_threshold: 0.8
+      scale_down_threshold: 0.2
+
+  # 大阪ノード - 汎用軽量処理
+  osaka-01:
+    location: ap-northeast-3  
+    master_host: master.koubou.internal
+    queue_type: redis
+    capacity:
+      max_workers: 4
+      max_memory_gb: 8
+      has_gpu: false
+    capabilities:
+      - general
+      - documentation
+      - quick_query
+    llm_config:
+      type: ollama
+      model: gemma2:2b
+      endpoint: http://localhost:11434
+    specialization: "軽量タスク処理"
+    auto_scale:
+      enabled: true
+      min_workers: 1
+      max_workers: 4
+      scale_up_threshold: 0.7
+      scale_down_threshold: 0.3
+
+  # ロンドンノード - 機密データ処理
+  london-01:
+    location: eu-west-2
+    master_host: master.koubou.eu
+    queue_type: rabbitmq
+    capacity:
+      max_workers: 2
+      max_memory_gb: 16
+      has_gpu: true
+    capabilities:
+      - confidential
+      - data_analysis
+      - secure_processing
+    llm_config:
+      type: api
+      model: local-gpt4
+      endpoint: https://secure-llm.internal:8443/v1
+      api_key: ${SECURE_LLM_API_KEY}
+    specialization: "機密データ処理"
+    security:
+      encryption: true
+      audit_logging: true
+      isolated_network: true
+    auto_scale:
+      enabled: false  # 機密処理は固定リソース
+      min_workers: 2
+      max_workers: 2
+
+  # シンガポールノード - アジア太平洋リージョン
+  singapore-01:
+    location: ap-southeast-1
+    master_host: master.koubou.apac
+    queue_type: redis
+    capacity:
+      max_workers: 6
+      max_memory_gb: 16
+      has_gpu: false
+    capabilities:
+      - general
+      - api_integration
+      - web_scraping
+    llm_config:
+      type: ollama
+      model: llama2:7b
+      endpoint: http://localhost:11434
+    specialization: "API統合・データ収集"
+
+# デプロイメント環境
+environments:
+  development:
+    master:
+      queue_type: local
+      routing_strategy: round_robin
+    workers:
+      - node_id: dev-worker-01
+        location: local
+        max_workers: 2
+        capabilities: [general, code]
+        llm_model: gemma2:2b
+
+  staging:
+    master:
+      queue_type: redis
+      routing_strategy: load_balanced
+    workers:
+      - node_id: stg-worker-01
+        location: staging
+        max_workers: 4
+        capabilities: [general, code, documentation]
+        llm_model: llama2:7b
+      - node_id: stg-worker-02
+        location: staging
+        max_workers: 4
+        capabilities: [general, code, documentation]
+        llm_model: llama2:7b
+
+  production:
+    master:
+      queue_type: rabbitmq
+      routing_strategy: capability_based
+      high_availability: true
+      backup_master: master-02
+    workers:
+      tokyo: [tokyo-01, tokyo-02, tokyo-03]
+      osaka: [osaka-01, osaka-02]
+      london: [london-01]
+      singapore: [singapore-01, singapore-02]
+
+# タスクルーティングルール
+routing_rules:
+  - name: "機密データ処理"
+    condition:
+      tags: [confidential, sensitive]
+    target_capabilities: [confidential]
+    preferred_nodes: [london-01]
+    
+  - name: "高負荷コード生成"
+    condition:
+      type: code
+      estimated_time: ">60s"
+    target_capabilities: [code, heavy_computation]
+    preferred_nodes: [tokyo-01]
+    
+  - name: "クイッククエリ"
+    condition:
+      type: general
+      estimated_time: "<10s"
+    target_capabilities: [quick_query, general]
+    preferred_nodes: [osaka-01]
+    
+  - name: "地理的最適化"
+    condition:
+      source_region: asia
+    preferred_locations: [ap-northeast-1, ap-southeast-1]
+
+# 監視・アラート設定
+monitoring:
+  metrics:
+    - node_cpu_usage
+    - node_memory_usage
+    - task_queue_length
+    - task_success_rate
+    - average_response_time
+    
+  alerts:
+    - name: "ノード高負荷"
+      condition: "cpu_usage > 90%"
+      duration: "5m"
+      action: "scale_up"
+      
+    - name: "タスク失敗率高"
+      condition: "failure_rate > 10%"
+      duration: "10m"
+      action: "notify_admin"
+      
+    - name: "ノードダウン"
+      condition: "node_status == 'down'"
+      duration: "1m"
+      action: "failover"
+
+# バックアップ・リカバリー設定
+backup:
+  enabled: true
+  interval: "1h"
+  retention: "7d"
+  backup_location: "s3://koubou-backup/"
+  
+recovery:
+  auto_recovery: true
+  max_retry: 3
+  retry_interval: "30s"

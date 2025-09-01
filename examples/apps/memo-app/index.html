@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoWall - ビジュアル付箋メモ</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header>
+        <h1>MemoWall</h1>
+        <button class="add-btn" aria-label="新規作成">
+            <!-- アイコン（例：＋） -->
+            <span>＋</span>
+        </button>
+        <input type="text" placeholder="メモを検索..." aria-label="検索バー">
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main>
+        <section id="memo-container">
+            <!-- メモカードはここに動的に追加される -->
+            <!-- 例 -->
+            <!--
+            <article class="memo-card">
+                <h3>タイトル例</h3>
+                <p>メモ内容のサンプルテキスト。</p>
+                <button class="edit-btn" aria-label="編集">編集</button>
+                <button class="delete-btn" aria-label="削除">削除</button>
+            </article>
+            -->
+        </section>
+    </main>
+
+    <!-- モーダルダイアログ（非表示状態） -->
+    <div id="memo-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>メモ作成 / 編集</h2>
+            <form id="memo-form">
+                <label for="memo-title">タイトル</label>
+                <input type="text" id="memo-title" name="title" required>
+
+                <label for="memo-content">内容</label>
+                <textarea id="memo-content" name="content" rows="5" required></textarea>
+
+                <fieldset>
+                    <legend>カラー選択</legend>
+                    <label><input type="radio" name="color" value="yellow" checked> 黄色</label>
+                    <label><input type="radio" name="color" value="pink"> ピンク</label>
+                    <label><input type="radio" name="color" value="blue"> 青</label>
+                    <label><input type="radio" name="color" value="green"> 緑</label>
+                    <label><input type="radio" name="color" value="orange"> オレンジ</label>
+                    <label><input type="radio" name="color" value="purple"> 紫</label>
+                    <label><input type="radio" name="color" value="gray"> 灰色</label>
+                </fieldset>
+
+                <div class="modal-actions">
+                    <button type="submit" class="save-btn">保存</button>
+                    <button type="button" class="cancel-btn">キャンセル</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

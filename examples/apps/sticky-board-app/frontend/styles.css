@@ -1,0 +1,244 @@
+/* ------------------------------------------------------------------
+   StickyBoard – Material Design inspired flat style
+   ------------------------------------------------------------------ */
+
+/* 1. Global variables (light & dark mode) */
+:root {
+  /* Base colors */
+  --color-bg: #f0f2f5;
+  --color-text: #333;
+  --color-note-bg: #ffffff;
+  --color-note-shadow: rgba(0, 0, 0, 0.15);
+  --color-note-hover-shadow: rgba(0, 0, 0, 0.25);
+  --color-note-drag-shadow: rgba(0, 0, 0, 0.35);
+  --color-note-drag-scale: 1.05;
+  --color-note-border-radius: 8px;
+  --color-note-transition: 0.2s ease;
+  --color-note-text: #000;
+
+  /* Color variations */
+  --color-note-red: #ffebee;
+  --color-note-yellow: #fffde7;
+  --color-note-green: #e8f5e9;
+  --color-note-blue: #e3f2fd;
+}
+
+/* Dark mode overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #121212;
+    --color-text: #e0e0e0;
+    --color-note-bg: #1e1e1e;
+    --color-note-shadow: rgba(255, 255, 255, 0.1);
+    --color-note-hover-shadow: rgba(255, 255, 255, 0.2);
+    --color-note-drag-shadow: rgba(255, 255, 255, 0.3);
+    --color-note-text: #fff;
+
+    /* Dark variations */
+    --color-note-red: #b71c1c;
+    --color-note-yellow: #f9a825;
+    --color-note-green: #2e7d32;
+    --color-note-blue: #1565c0;
+  }
+}
+
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow-x: hidden;
+}
+
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Color picker styles */
+.color-picker {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 25px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 100;
+}
+
+.color-btn {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-btn:hover {
+  transform: scale(1.2);
+  border-color: rgba(0,0,0,0.3);
+}
+
+.color-btn.yellow { background-color: #FFEB3B; }
+.color-btn.pink { background-color: #E91E63; }
+.color-btn.blue { background-color: #2196F3; }
+.color-btn.green { background-color: #4CAF50; }
+.color-btn.orange { background-color: #FF9800; }
+
+/* 2. Board container – responsive grid layout */
+.board {
+  position: relative;
+  min-height: calc(100vh - 120px);
+  background: var(--color-bg);
+  padding: 16px;
+}
+
+/* 3. Sticky note styles */
+.sticky-note {
+  position: absolute;
+  background: #FFEB3B;
+  border-radius: var(--color-note-border-radius);
+  box-shadow: 0 2px 4px var(--color-note-shadow);
+  padding: 16px;
+  cursor: grab;
+  transition: transform var(--color-note-transition), box-shadow var(--color-note-transition);
+  user-select: none;
+  min-width: 200px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Roboto', sans-serif;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Dragging state */
+.sticky-note.dragging {
+  transform: scale(var(--color-note-drag-scale));
+  box-shadow: 0 6px 12px var(--color-note-drag-shadow);
+  z-index: 1000;
+  cursor: grabbing;
+  opacity: 0.9;
+}
+
+/* Hover feedback */
+.sticky-note:hover {
+  box-shadow: 0 4px 8px var(--color-note-hover-shadow);
+}
+
+/* Note header with close button */
+.note-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.note-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: rgba(0,0,0,0.5);
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.note-close:hover {
+  color: rgba(0,0,0,0.8);
+}
+
+/* Note content area */
+.note-content {
+  flex: 1;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  outline: none;
+  background: transparent;
+  border: none;
+  resize: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+.note-content:focus {
+  outline: 1px dashed rgba(0,0,0,0.3);
+  outline-offset: 2px;
+}
+
+/* Color variations for sticky notes */
+.sticky-note.yellow { background: #FFEB3B; }
+.sticky-note.pink { background: #E91E63; color: white; }
+.sticky-note.blue { background: #2196F3; color: white; }
+.sticky-note.green { background: #4CAF50; color: white; }
+.sticky-note.orange { background: #FF9800; color: white; }
+
+.sticky-note.pink .note-close,
+.sticky-note.blue .note-close,
+.sticky-note.green .note-close,
+.sticky-note.orange .note-close {
+  color: rgba(255,255,255,0.7);
+}
+
+.sticky-note.pink .note-close:hover,
+.sticky-note.blue .note-close:hover,
+.sticky-note.green .note-close:hover,
+.sticky-note.orange .note-close:hover {
+  color: rgba(255,255,255,1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.sticky-note {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.sticky-note.removing {
+  animation: fadeOut 0.2s forwards;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .color-picker {
+    bottom: 10px;
+    right: 10px;
+    padding: 8px;
+  }
+  
+  .color-btn {
+    width: 30px;
+    height: 30px;
+  }
+  
+  .sticky-note {
+    min-width: 150px;
+    min-height: 120px;
+  }
+}

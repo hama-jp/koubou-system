@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工房システム ダッシュボード - タスク詳細付き</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .status.connected {
+            background: #10b981;
+            color: white;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        /* タスク詳細スタイル */
+        .task-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ddd;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .task-item:hover {
+            background: #f3f4f6;
+            transform: translateX(2px);
+        }
+        
+        .task-item.pending {
+            border-left-color: #f59e0b;
+        }
+        
+        .task-item.in-progress {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .task-item.completed {
+            border-left-color: #10b981;
+            opacity: 0.8;
+        }
+        
+        .task-item.failed {
+            border-left-color: #ef4444;
+            opacity: 0.8;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .task-id {
+            font-size: 11px;
+            color: #9ca3af;
+            font-family: monospace;
+        }
+        
+        .task-status-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .task-status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .task-status-badge.in-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .task-status-badge.completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .task-status-badge.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .task-type {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .task-type.code {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .task-type.general {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .task-prompt {
+            font-size: 13px;
+            color: #111827;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .task-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .priority-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .priority-bar {
+            width: 3px;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 1px;
+        }
+        
+        .priority-bar.filled {
+            background: #f59e0b;
+        }
+        
+        .task-result {
+            margin-top: 8px;
+            padding: 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #4b5563;
+            font-family: monospace;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .task-result.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .task-result.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* タブスタイル */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .tab {
+            padding: 8px 16px;
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        
+        .tab:hover {
+            color: #374151;
+        }
+        
+        .tab.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* 展開可能な詳細 */
+        .expandable {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .task-item.expanded .task-result {
+            max-height: 200px;
+        }
+        
+        /* スクロールバーカスタマイズ */
+        .task-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .task-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .task-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .task-list::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                🏭 工房システム ダッシュボード
+                <span class="status connected">接続中</span>
+                <span style="margin-left: auto; font-size: 14px; color: #6b7280; font-weight: normal;">
+                    Claude Code (親方) → ローカルLLM職人たち
+                </span>
+            </h1>
+        </header>
+        
+        <div class="dashboard">
+            <!-- タスク統計（既存） -->
+            <div class="card">
+                <h2>📊 タスク統計</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">保留中</span>
+                        <span class="stat-value" style="color: #f59e0b;">5</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">処理中</span>
+                        <span class="stat-value" style="color: #3b82f6;">2</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">完了</span>
+                        <span class="stat-value" style="color: #10b981;">247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">失敗</span>
+                        <span class="stat-value" style="color: #ef4444;">8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 現在処理中のタスク（新規） -->
+            <div class="card" style="grid-column: span 2;">
+                <h2>⚡ 現在処理中のタスク</h2>
+                <div class="task-list">
+                    <!-- 処理中タスク1 -->
+                    <div class="task-item in-progress">
+                        <div class="task-header">
+                            <span class="task-id">task_20250829_143621_001</span>
+                            <span class="task-status-badge in-progress">処理中</span>
+                        </div>
+                        <span class="task-type code">コード生成</span>
+                        <div class="task-prompt">
+                            "REST APIエンドポイントを作成してください。ユーザー認証機能付きで、JWT トークンを使用し、ユーザーのCRUD操作ができるようにしてください。"
+                        </div>
+                        <div class="task-meta">
+                            <div class="task-meta-item">
+                                <span>👷 worker_20250829_143521</span>
+                            </div>
+                            <div class="task-meta-item">
+                                <span>⏱️ 45秒経過</span>
+                            </div>
+                            <div class="task-meta-item priority-indicator">
+                                <span>優先度:</span>
+                                <span class="priority-bar filled"></span>
+                                <span class="priority-bar filled"></span>
+                                <span class="priority-bar filled"></span>
+                                <span class="priority-bar"></span>
+                                <span class="priority-bar"></span>
+                                <span>(8/10)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 処理中タスク2 -->
+                    <div class="task-item in-progress">
+                        <div class="task-header">
+                            <span class="task-id">task_20250829_143625_002</span>
+                            <span class="task-status-badge in-progress">処理中</span>
+                        </div>
+                        <span class="task-type general">一般質問</span>
+                        <div class="task-prompt">
+                            "Pythonでデコレーターパターンを実装する方法と、実際の使用例を3つ教えてください。"
+                        </div>
+                        <div class="task-meta">
+                            <div class="task-meta-item">
+                                <span>👷 worker_20250829_143522</span>
+                            </div>
+                            <div class="task-meta-item">
+                                <span>⏱️ 12秒経過</span>
+                            </div>
+                            <div class="task-meta-item priority-indicator">
+                                <span>優先度:</span>
+                                <span class="priority-bar filled"></span>
+                                <span class="priority-bar filled"></span>
+                                <span class="priority-bar"></span>
+                                <span class="priority-bar"></span>
+                                <span class="priority-bar"></span>
+                                <span>(5/10)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- タスクキュー（タブ付き） -->
+            <div class="card" style="grid-column: span 3;">
+                <h2>📝 タスクキュー詳細</h2>
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('pending')">保留中 (5)</button>
+                    <button class="tab" onclick="showTab('completed')">完了済み (最新10件)</button>
+                    <button class="tab" onclick="showTab('failed')">失敗 (8)</button>
+                </div>
+                
+                <!-- 保留中タブ -->
+                <div id="pending-tab" class="tab-content active">
+                    <div class="task-list">
+                        <!-- 保留タスク1 -->
+                        <div class="task-item pending">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143630_003</span>
+                                <span class="task-status-badge pending">保留中</span>
+                            </div>
+                            <span class="task-type code">コード生成</span>
+                            <div class="task-prompt">
+                                "TypeScriptでReactコンポーネントを作成。カスタムフックを使用してAPIからデータを取得し、ローディング状態とエラーハンドリングを実装してください。"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>📅 作成: 2分前</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>👤 Claude Code</span>
+                                </div>
+                                <div class="task-meta-item priority-indicator">
+                                    <span>優先度:</span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar"></span>
+                                    <span>(9/10)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 保留タスク2 -->
+                        <div class="task-item pending">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143632_004</span>
+                                <span class="task-status-badge pending">保留中</span>
+                            </div>
+                            <span class="task-type general">分析</span>
+                            <div class="task-prompt">
+                                "このコードのパフォーマンスボトルネックを特定し、最適化案を提案してください: [長いコードスニペット...]"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>📅 作成: 3分前</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>👤 Claude Code</span>
+                                </div>
+                                <div class="task-meta-item priority-indicator">
+                                    <span>優先度:</span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar"></span>
+                                    <span class="priority-bar"></span>
+                                    <span class="priority-bar"></span>
+                                    <span>(6/10)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 保留タスク3 -->
+                        <div class="task-item pending">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143635_005</span>
+                                <span class="task-status-badge pending">保留中</span>
+                            </div>
+                            <span class="task-type code">テスト作成</span>
+                            <div class="task-prompt">
+                                "calculator.pyファイルに対する包括的なユニットテストをpytestで作成。エッジケースとエラー処理を含めてください。"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>📅 作成: 5分前</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>👤 Claude Code</span>
+                                </div>
+                                <div class="task-meta-item priority-indicator">
+                                    <span>優先度:</span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar filled"></span>
+                                    <span class="priority-bar"></span>
+                                    <span class="priority-bar"></span>
+                                    <span class="priority-bar"></span>
+                                    <span>(7/10)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 完了済みタブ -->
+                <div id="completed-tab" class="tab-content">
+                    <div class="task-list">
+                        <!-- 完了タスク1 -->
+                        <div class="task-item completed" onclick="toggleExpand(this)">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143615_999</span>
+                                <span class="task-status-badge completed">完了</span>
+                            </div>
+                            <span class="task-type code">コード生成</span>
+                            <div class="task-prompt">
+                                "Pythonで二分探索アルゴリズムを実装してください。"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>👷 worker_20250829_143520</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>⏱️ 処理時間: 8秒</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>✅ 5分前に完了</span>
+                                </div>
+                            </div>
+                            <div class="task-result success">
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+                            </div>
+                        </div>
+                        
+                        <!-- 完了タスク2 -->
+                        <div class="task-item completed">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143610_998</span>
+                                <span class="task-status-badge completed">完了</span>
+                            </div>
+                            <span class="task-type general">説明</span>
+                            <div class="task-prompt">
+                                "マイクロサービスアーキテクチャの利点と欠点を説明してください。"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>👷 worker_20250829_143519</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>⏱️ 処理時間: 15秒</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>✅ 10分前に完了</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 失敗タブ -->
+                <div id="failed-tab" class="tab-content">
+                    <div class="task-list">
+                        <!-- 失敗タスク -->
+                        <div class="task-item failed">
+                            <div class="task-header">
+                                <span class="task-id">task_20250829_143600_997</span>
+                                <span class="task-status-badge failed">失敗</span>
+                            </div>
+                            <span class="task-type code">コード修正</span>
+                            <div class="task-prompt">
+                                "production.pyファイルのバグを修正してください。[ファイルが見つかりません]"
+                            </div>
+                            <div class="task-meta">
+                                <div class="task-meta-item">
+                                    <span>👷 worker_20250829_143518</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>⏱️ タイムアウト: 120秒</span>
+                                </div>
+                                <div class="task-meta-item">
+                                    <span>❌ 20分前に失敗</span>
+                                </div>
+                            </div>
+                            <div class="task-result error">
+Error: File 'production.py' not found in the workspace.
+Unable to proceed with the bug fix request.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // タブ切り替え
+        function showTab(tabName) {
+            // すべてのタブコンテンツを非表示
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // すべてのタブボタンを非アクティブ化
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 選択されたタブを表示
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // 選択されたタブボタンをアクティブ化
+            event.target.classList.add('active');
+        }
+        
+        // タスク詳細の展開/折りたたみ
+        function toggleExpand(element) {
+            element.classList.toggle('expanded');
+        }
+        
+        // リアルタイム更新シミュレーション
+        let taskCounter = 1000;
+        
+        function addNewTask() {
+            const taskTypes = ['code', 'general', 'code', 'general'];
+            const taskLabels = ['コード生成', '一般質問', 'テスト作成', '分析'];
+            const prompts = [
+                'GraphQL APIスキーマを定義してください。User, Post, Commentエンティティを含む。',
+                'Dockerコンテナとバーチャルマシンの違いを説明してください。',
+                'WebSocketサーバーの負荷テストスクリプトを作成してください。',
+                'このSQLクエリを最適化してください: SELECT * FROM...',
+            ];
+            
+            const randomIndex = Math.floor(Math.random() * taskTypes.length);
+            const priority = Math.floor(Math.random() * 10) + 1;
+            
+            // 処理中タスクの更新をシミュレート
+            const inProgressTasks = document.querySelectorAll('.task-item.in-progress .task-meta-item:nth-child(2)');
+            inProgressTasks.forEach(item => {
+                const currentTime = parseInt(item.textContent.match(/\d+/)[0]);
+                item.innerHTML = `<span>⏱️ ${currentTime + 1}秒経過</span>`;
+            });
+        }
+        
+        // 5秒ごとに更新
+        setInterval(addNewTask, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,392 @@
+{
+  "timestamp": "2025-08-31T00:38:19.638122",
+  "summary": {
+    "total_tests": 23,
+    "successful_tests": 15,
+    "success_rate": 65.21739130434783,
+    "average_response_time": 74.9305962059233,
+    "file_operations_supported": false
+  },
+  "categories": {
+    "file_operations": [
+      {
+        "name": "Create test file",
+        "category": "file_operations",
+        "success": false,
+        "time": 126.92345952987671,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "Read file",
+        "category": "file_operations",
+        "success": false,
+        "time": 127.00775051116943,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "List directory",
+        "category": "file_operations",
+        "success": false,
+        "time": 127.00629258155823,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "Multiple file operations",
+        "category": "file_operations",
+        "success": false,
+        "time": 127.00818061828613,
+        "output_length": 0,
+        "sync": true
+      }
+    ],
+    "text_generation": [
+      {
+        "name": "Medium text (paragraph)",
+        "category": "text_generation",
+        "success": true,
+        "time": 58.9615113735199,
+        "output_length": 942,
+        "sync": true
+      },
+      {
+        "name": "Long text (essay)",
+        "category": "text_generation",
+        "success": true,
+        "time": 83.86585474014282,
+        "output_length": 4543,
+        "sync": true
+      },
+      {
+        "name": "Structured list",
+        "category": "text_generation",
+        "success": true,
+        "time": 20.44131302833557,
+        "output_length": 1122,
+        "sync": true
+      },
+      {
+        "name": "Async task 1",
+        "category": "text_generation",
+        "success": true,
+        "time": 0.01896810531616211,
+        "output_length": 20,
+        "sync": false
+      },
+      {
+        "name": "Async task 2",
+        "category": "text_generation",
+        "success": true,
+        "time": 0.021051883697509766,
+        "output_length": 20,
+        "sync": false
+      },
+      {
+        "name": "Async task 3",
+        "category": "text_generation",
+        "success": true,
+        "time": 0.017915010452270508,
+        "output_length": 20,
+        "sync": false
+      },
+      {
+        "name": "Async task 4",
+        "category": "text_generation",
+        "success": true,
+        "time": 0.019707441329956055,
+        "output_length": 20,
+        "sync": false
+      },
+      {
+        "name": "Async task 5",
+        "category": "text_generation",
+        "success": true,
+        "time": 0.0183413028717041,
+        "output_length": 20,
+        "sync": false
+      }
+    ],
+    "code_generation": [
+      {
+        "name": "Simple function",
+        "category": "code_generation",
+        "success": true,
+        "time": 13.261944055557251,
+        "output_length": 870,
+        "sync": true
+      },
+      {
+        "name": "Class implementation",
+        "category": "code_generation",
+        "success": false,
+        "time": 127.01459884643555,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "Algorithm implementation",
+        "category": "code_generation",
+        "success": false,
+        "time": 127.01090455055237,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "REST API endpoint",
+        "category": "code_generation",
+        "success": true,
+        "time": 49.56458878517151,
+        "output_length": 161,
+        "sync": true
+      }
+    ],
+    "analysis": [
+      {
+        "name": "Text summarization",
+        "category": "analysis",
+        "success": true,
+        "time": 11.762155532836914,
+        "output_length": 761,
+        "sync": true
+      },
+      {
+        "name": "Comparison analysis",
+        "category": "analysis",
+        "success": true,
+        "time": 15.540664911270142,
+        "output_length": 1955,
+        "sync": true
+      },
+      {
+        "name": "Problem solving",
+        "category": "analysis",
+        "success": true,
+        "time": 19.781508922576904,
+        "output_length": 2588,
+        "sync": true
+      },
+      {
+        "name": "System design",
+        "category": "analysis",
+        "success": true,
+        "time": 32.360713720321655,
+        "output_length": 3590,
+        "sync": true
+      }
+    ],
+    "translation": [
+      {
+        "name": "Technical translation (EN\u2192JP)",
+        "category": "translation",
+        "success": true,
+        "time": 27.22695803642273,
+        "output_length": 168,
+        "sync": true
+      },
+      {
+        "name": "Error message translation",
+        "category": "translation",
+        "success": false,
+        "time": 127.00325441360474,
+        "output_length": 0,
+        "sync": true
+      },
+      {
+        "name": "Documentation translation",
+        "category": "translation",
+        "success": false,
+        "time": 127.00907754898071,
+        "output_length": 0,
+        "sync": true
+      }
+    ]
+  },
+  "detailed_results": [
+    {
+      "name": "Create test file",
+      "category": "file_operations",
+      "success": false,
+      "time": 126.92345952987671,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Read file",
+      "category": "file_operations",
+      "success": false,
+      "time": 127.00775051116943,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "List directory",
+      "category": "file_operations",
+      "success": false,
+      "time": 127.00629258155823,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Multiple file operations",
+      "category": "file_operations",
+      "success": false,
+      "time": 127.00818061828613,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Medium text (paragraph)",
+      "category": "text_generation",
+      "success": true,
+      "time": 58.9615113735199,
+      "output_length": 942,
+      "sync": true
+    },
+    {
+      "name": "Long text (essay)",
+      "category": "text_generation",
+      "success": true,
+      "time": 83.86585474014282,
+      "output_length": 4543,
+      "sync": true
+    },
+    {
+      "name": "Structured list",
+      "category": "text_generation",
+      "success": true,
+      "time": 20.44131302833557,
+      "output_length": 1122,
+      "sync": true
+    },
+    {
+      "name": "Simple function",
+      "category": "code_generation",
+      "success": true,
+      "time": 13.261944055557251,
+      "output_length": 870,
+      "sync": true
+    },
+    {
+      "name": "Class implementation",
+      "category": "code_generation",
+      "success": false,
+      "time": 127.01459884643555,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Algorithm implementation",
+      "category": "code_generation",
+      "success": false,
+      "time": 127.01090455055237,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "REST API endpoint",
+      "category": "code_generation",
+      "success": true,
+      "time": 49.56458878517151,
+      "output_length": 161,
+      "sync": true
+    },
+    {
+      "name": "Text summarization",
+      "category": "analysis",
+      "success": true,
+      "time": 11.762155532836914,
+      "output_length": 761,
+      "sync": true
+    },
+    {
+      "name": "Comparison analysis",
+      "category": "analysis",
+      "success": true,
+      "time": 15.540664911270142,
+      "output_length": 1955,
+      "sync": true
+    },
+    {
+      "name": "Problem solving",
+      "category": "analysis",
+      "success": true,
+      "time": 19.781508922576904,
+      "output_length": 2588,
+      "sync": true
+    },
+    {
+      "name": "System design",
+      "category": "analysis",
+      "success": true,
+      "time": 32.360713720321655,
+      "output_length": 3590,
+      "sync": true
+    },
+    {
+      "name": "Technical translation (EN\u2192JP)",
+      "category": "translation",
+      "success": true,
+      "time": 27.22695803642273,
+      "output_length": 168,
+      "sync": true
+    },
+    {
+      "name": "Error message translation",
+      "category": "translation",
+      "success": false,
+      "time": 127.00325441360474,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Documentation translation",
+      "category": "translation",
+      "success": false,
+      "time": 127.00907754898071,
+      "output_length": 0,
+      "sync": true
+    },
+    {
+      "name": "Async task 1",
+      "category": "text_generation",
+      "success": true,
+      "time": 0.01896810531616211,
+      "output_length": 20,
+      "sync": false
+    },
+    {
+      "name": "Async task 2",
+      "category": "text_generation",
+      "success": true,
+      "time": 0.021051883697509766,
+      "output_length": 20,
+      "sync": false
+    },
+    {
+      "name": "Async task 3",
+      "category": "text_generation",
+      "success": true,
+      "time": 0.017915010452270508,
+      "output_length": 20,
+      "sync": false
+    },
+    {
+      "name": "Async task 4",
+      "category": "text_generation",
+      "success": true,
+      "time": 0.019707441329956055,
+      "output_length": 20,
+      "sync": false
+    },
+    {
+      "name": "Async task 5",
+      "category": "text_generation",
+      "success": true,
+      "time": 0.0183413028717041,
+      "output_length": 20,
+      "sync": false
+    }
+  ]
+}

@@ -1,0 +1,188 @@
+{
+  "mcpServers": {
+    "koubou": {
+      "name": "Koubou System MCP Server",
+      "description": "MCP server for delegating tasks to local AI workers",
+      "command": "python3",
+      "args": [
+        "/var/koubou/scripts/mcp_server.py"
+      ],
+      "env": {
+        "KOUBOU_DB": "/var/koubou/db/koubou.db",
+        "KOUBOU_HOME": "/var/koubou",
+        "PYTHONUNBUFFERED": "1"
+      },
+      "timeout": 30000,
+      "tools": [
+        {
+          "name": "koubou_delegate_task",
+          "description": "Delegate a task to local AI worker for processing",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "content": {
+                "type": "string",
+                "description": "The task description or request"
+              },
+              "task_type": {
+                "type": "string",
+                "enum": ["code_generation", "code_review", "refactoring", "testing", "documentation", "analysis", "general"],
+                "default": "general",
+                "description": "Type of task to perform"
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10,
+                "default": 5,
+                "description": "Task priority (1=lowest, 10=highest)"
+              },
+              "context": {
+                "type": "object",
+                "description": "Additional context for the task",
+                "properties": {
+                  "language": {
+                    "type": "string",
+                    "description": "Programming language if applicable"
+                  },
+                  "framework": {
+                    "type": "string",
+                    "description": "Framework or library if applicable"
+                  },
+                  "requirements": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Specific requirements or constraints"
+                  }
+                }
+              }
+            },
+            "required": ["content"]
+          }
+        },
+        {
+          "name": "koubou_get_task_status",
+          "description": "Get the current status and result of a delegated task",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "The task ID returned from delegate_task"
+              }
+            },
+            "required": ["task_id"]
+          }
+        },
+        {
+          "name": "koubou_list_tasks",
+          "description": "List all tasks with optional filtering",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["pending", "assigned", "in_progress", "completed", "failed", "all"],
+                "default": "all",
+                "description": "Filter tasks by status"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 10,
+                "description": "Maximum number of tasks to return"
+              },
+              "order_by": {
+                "type": "string",
+                "enum": ["created_at", "priority", "updated_at"],
+                "default": "created_at",
+                "description": "Sort order for tasks"
+              }
+            }
+          }
+        },
+        {
+          "name": "koubou_get_worker_status",
+          "description": "Get status of all worker processes",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "include_stats": {
+                "type": "boolean",
+                "default": true,
+                "description": "Include statistics about completed/failed tasks"
+              }
+            }
+          }
+        },
+        {
+          "name": "koubou_cancel_task",
+          "description": "Cancel a pending or in-progress task",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "The task ID to cancel"
+              },
+              "reason": {
+                "type": "string",
+                "description": "Reason for cancellation",
+                "default": "User requested cancellation"
+              }
+            },
+            "required": ["task_id"]
+          }
+        },
+        {
+          "name": "koubou_retry_task",
+          "description": "Retry a failed task",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "The task ID to retry"
+              },
+              "modifications": {
+                "type": "object",
+                "description": "Optional modifications to the task",
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "description": "Updated task content"
+                  },
+                  "priority": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "Updated priority"
+                  }
+                }
+              }
+            },
+            "required": ["task_id"]
+          }
+        },
+        {
+          "name": "koubou_get_system_stats",
+          "description": "Get overall system statistics and health",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "time_range": {
+                "type": "string",
+                "enum": ["1h", "24h", "7d", "30d", "all"],
+                "default": "24h",
+                "description": "Time range for statistics"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

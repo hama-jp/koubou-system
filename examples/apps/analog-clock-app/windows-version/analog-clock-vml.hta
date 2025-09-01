@@ -1,0 +1,247 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml">
+<head>
+<HTA:APPLICATION 
+    ID="VMLAnalogClock"
+    APPLICATIONNAME="VML Clock"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    SCROLL="no"
+    WINDOWSTATE="normal"
+/>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>VML Analog Clock</title>
+<style type="text/css">
+v\:* { behavior: url(#default#VML); }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #2c3e50;
+  overflow: hidden;
+  cursor: move;
+}
+
+#container {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+}
+
+#clockFace {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+}
+
+.number {
+  position: absolute;
+  font-family: Arial;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+#num12 { left: 92px; top: 10px; }
+#num3 { right: 15px; top: 88px; }
+#num6 { left: 95px; bottom: 10px; }
+#num9 { left: 15px; top: 88px; }
+
+.hand {
+  position: absolute;
+  transform-origin: 50% 100%;
+  left: 50%;
+  bottom: 50%;
+  background: #333;
+}
+
+#hourHand {
+  width: 6px;
+  height: 60px;
+  margin-left: -3px;
+  background: #333;
+}
+
+#minuteHand {
+  width: 4px;
+  height: 80px;
+  margin-left: -2px;
+  background: #666;
+}
+
+#secondHand {
+  width: 2px;
+  height: 90px;
+  margin-left: -1px;
+  background: #e74c3c;
+}
+
+#centerDot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: #333;
+  border-radius: 50%;
+  left: 95px;
+  top: 95px;
+  z-index: 100;
+}
+
+#closeBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #ff5555;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+  z-index: 200;
+}
+
+#container:hover #closeBtn {
+  opacity: 1;
+}
+
+#digitalTime {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  margin-left: -40px;
+  width: 80px;
+  text-align: center;
+  color: #ecf0f1;
+  font-family: 'Courier New';
+  font-size: 14px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+</style>
+<script language="JScript">
+var isDragging = false;
+var mouseX = 0, mouseY = 0;
+var updateTimer = null;
+
+function init() {
+  // Window size
+  window.resizeTo(220, 250);
+  
+  // Position
+  var sw = window.screen.availWidth;
+  var sh = window.screen.availHeight;
+  window.moveTo(sw - 240, sh - 280);
+  
+  // Start clock
+  updateClock();
+  updateTimer = window.setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+  var now = new Date();
+  var hours = now.getHours();
+  var minutes = now.getMinutes();
+  var seconds = now.getSeconds();
+  
+  // Calculate angles
+  var hourAngle = ((hours % 12) * 30) + (minutes * 0.5);
+  var minuteAngle = minutes * 6;
+  var secondAngle = seconds * 6;
+  
+  // Update hands using rotation
+  rotateElement('hourHand', hourAngle);
+  rotateElement('minuteHand', minuteAngle);
+  rotateElement('secondHand', secondAngle);
+  
+  // Update digital time
+  var h = hours < 10 ? '0' + hours : hours;
+  var m = minutes < 10 ? '0' + minutes : minutes;
+  var s = seconds < 10 ? '0' + seconds : seconds;
+  document.getElementById('digitalTime').innerText = h + ':' + m + ':' + s;
+}
+
+function rotateElement(id, angle) {
+  var element = document.getElementById(id);
+  if (element) {
+    // IE rotation using filter
+    var rad = angle * Math.PI / 180;
+    var cos = Math.cos(rad);
+    var sin = Math.sin(rad);
+    
+    // Apply Matrix filter for rotation
+    element.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(' +
+      'M11=' + cos + ', M12=' + (-sin) + ', M21=' + sin + ', M22=' + cos + 
+      ', SizingMethod="auto expand")';
+    
+    // Adjust position after rotation
+    var rect = element.getBoundingClientRect();
+    element.style.marginLeft = -(rect.width / 2) + 'px';
+    element.style.marginTop = -(rect.height) + 'px';
+  }
+}
+
+function dragStart() {
+  if (window.event.srcElement.id == 'closeBtn') {
+    return;
+  }
+  isDragging = true;
+  mouseX = window.event.clientX;
+  mouseY = window.event.clientY;
+}
+
+function dragMove() {
+  if (!isDragging) return;
+  
+  var newX = window.event.clientX;
+  var newY = window.event.clientY;
+  
+  window.moveBy(newX - mouseX, newY - mouseY);
+}
+
+function dragEnd() {
+  isDragging = false;
+}
+
+function closeApp() {
+  if (updateTimer) {
+    window.clearInterval(updateTimer);
+  }
+  window.close();
+}
+</script>
+</head>
+<body onload="init()" onmousedown="dragStart()" onmousemove="dragMove()" onmouseup="dragEnd()">
+
+<div id="container">
+  <button id="closeBtn" onclick="closeApp()">×</button>
+  
+  <!-- Clock face with numbers -->
+  <div id="clockFace">
+    <div class="number" id="num12">12</div>
+    <div class="number" id="num3">3</div>
+    <div class="number" id="num6">6</div>
+    <div class="number" id="num9">9</div>
+  </div>
+  
+  <!-- Clock hands -->
+  <div class="hand" id="hourHand"></div>
+  <div class="hand" id="minuteHand"></div>
+  <div class="hand" id="secondHand"></div>
+  
+  <!-- Center dot -->
+  <div id="centerDot"></div>
+  
+  <!-- Digital time display -->
+  <div id="digitalTime"></div>
+</div>
+
+</body>
+</html>

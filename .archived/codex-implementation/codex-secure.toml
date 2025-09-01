@@ -1,0 +1,44 @@
+# Secure Codex CLI Configuration for Workers
+# 職人向けの制限付きファイルアクセス設定
+
+# Model configuration
+model = "gpt-oss-20b@f16"
+model_provider = "openai-compatible"
+
+# API Configuration for LMStudio
+[openai_compatible]
+base_url = "http://192.168.11.29:1234/v1"
+api_key = "not-needed"
+
+# Security settings
+[agent]
+approval_mode = "full-auto"  # 自動承認（サンドボックス内）
+
+# Sandbox configuration - 制限付きファイルアクセス
+[sandbox]
+reset = true  # デフォルト権限をリセット
+permissions = [
+    "disk-full-read-access",  # 全体読み込み可能
+    { name = "disk-write-folder", folder = "/home/hama/project/koubou-system/.koubou/workspace/outputs" },  # outputsのみ書き込み可能
+    "disk-write-platform-user-temp-folder"  # 一時ファイル用
+]
+
+# File handling
+[file_handling]
+auto_add = false
+ignore_patterns = [
+    "*.pyc",
+    "__pycache__",
+    ".git",
+    ".venv",
+    "node_modules",
+    "*.db",
+    "*.log"
+]
+
+# Project settings
+[project]
+root = "/home/hama/project/koubou-system"
+workspace = "/home/hama/project/koubou-system/.koubou/workspace"
+inputs_dir = "/home/hama/project/koubou-system/.koubou/workspace/inputs"
+outputs_dir = "/home/hama/project/koubou-system/.koubou/workspace/outputs"

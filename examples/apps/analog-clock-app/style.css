@@ -1,0 +1,19 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#clockCanvas {
+  width: 80vmin;          /* 90vminから80vminに縮小して余白を確保 */
+  height: 80vmin;
+  max-width: 450px;       /* 最大サイズも少し縮小 */
+  max-height: 450px;
+  border-radius: 50%;     /* 円形の外観 */
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);  /* 影を追加 */
+  background: white;
+}

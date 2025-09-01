@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>日めくりカレンダー</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+body {
+  font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+  background: transparent;
+  overflow: hidden;
+}
+
+#daily-calendar-widget {
+  width: 220px;
+  height: 250px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.98) 0%, rgba(245,245,245,0.98) 100%);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  text-align: center;
+  position: relative;
+  -webkit-app-region: drag;
+}
+
+.control-buttons {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 5px;
+  -webkit-app-region: no-drag;
+}
+
+.control-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: white;
+  transition: all 0.3s;
+  opacity: 0.8;
+}
+
+.control-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.minimize-btn {
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+.pin-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.pin-btn.pinned {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.close-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ff4444 100%);
+}
+
+.header {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+  margin-top: 20px;
+  -webkit-app-region: no-drag;
+}
+
+.date-container {
+  margin: 15px 0;
+  -webkit-app-region: no-drag;
+}
+
+.date-number {
+  font-size: 80px;
+  font-weight: 900;
+  display: block;
+  line-height: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+.weekday {
+  font-size: 26px;
+  margin-top: 10px;
+  display: block;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.weekday-sat { 
+  color: #4a90e2;
+  text-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+}
+
+.weekday-sun, .holiday { 
+  color: #ff4444;
+  text-shadow: 0 2px 4px rgba(255, 68, 68, 0.3);
+}
+
+.weekday-weekday { 
+  color: #333;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.footer {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  -webkit-app-region: no-drag;
+}
+
+.sixyo {
+  font-size: 16px;
+  color: #666;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(240,240,240,0.9) 100%);
+  border-radius: 15px;
+  display: inline-block;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.holiday-name {
+  position: absolute;
+  bottom: 45px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 12px;
+  color: #ff4444;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.holiday-name.show {
+  opacity: 1;
+}
+
+/* ダークモード対応 */
+@media (prefers-color-scheme: dark) {
+  #daily-calendar-widget {
+    background: linear-gradient(135deg, rgba(30,30,30,0.98) 0%, rgba(45,45,45,0.98) 100%);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  
+  .header {
+    color: #aaa;
+  }
+  
+  .weekday-weekday {
+    color: #ddd;
+  }
+  
+  .sixyo {
+    color: #bbb;
+    background: linear-gradient(135deg, rgba(60,60,60,0.9) 0%, rgba(50,50,50,0.9) 100%);
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="daily-calendar-widget">
+  <div class="control-buttons">
+    <button class="control-btn minimize-btn" onclick="minimizeWindow()">−</button>
+    <button class="control-btn pin-btn" id="pin-btn" onclick="togglePin()">📌</button>
+    <button class="control-btn close-btn" onclick="closeWindow()">×</button>
+  </div>
+  
+  <div class="header">
+    <span id="month-year"></span>
+  </div>
+  
+  <div class="date-container">
+    <span id="date-number" class="date-number"></span>
+    <span id="weekday" class="weekday"></span>
+  </div>
+  
+  <div class="holiday-name" id="holiday-name"></div>
+  
+  <div class="footer">
+    <span id="sixyo" class="sixyo"></span>
+  </div>
+</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+
+// 日本の祝日データ（2024-2025年）
+const holidays = {
+  '2024-1-1': '元日',
+  '2024-1-8': '成人の日',
+  '2024-2-11': '建国記念の日',
+  '2024-2-12': '振替休日',
+  '2024-2-23': '天皇誕生日',
+  '2024-3-20': '春分の日',
+  '2024-4-29': '昭和の日',
+  '2024-5-3': '憲法記念日',
+  '2024-5-4': 'みどりの日',
+  '2024-5-5': 'こどもの日',
+  '2024-5-6': '振替休日',
+  '2024-7-15': '海の日',
+  '2024-8-11': '山の日',
+  '2024-8-12': '振替休日',
+  '2024-9-16': '敬老の日',
+  '2024-9-22': '秋分の日',
+  '2024-9-23': '振替休日',
+  '2024-10-14': 'スポーツの日',
+  '2024-11-3': '文化の日',
+  '2024-11-4': '振替休日',
+  '2024-11-23': '勤労感謝の日',
+  '2025-1-1': '元日',
+  '2025-1-13': '成人の日',
+  '2025-2-11': '建国記念の日',
+  '2025-2-23': '天皇誕生日',
+  '2025-2-24': '振替休日',
+  '2025-3-20': '春分の日',
+  '2025-4-29': '昭和の日',
+  '2025-5-3': '憲法記念日',
+  '2025-5-4': 'みどりの日',
+  '2025-5-5': 'こどもの日',
+  '2025-5-6': '振替休日',
+  '2025-7-21': '海の日',
+  '2025-8-11': '山の日',
+  '2025-9-15': '敬老の日',
+  '2025-9-23': '秋分の日',
+  '2025-10-13': 'スポーツの日',
+  '2025-11-3': '文化の日',
+  '2025-11-23': '勤労感謝の日',
+  '2025-11-24': '振替休日'
+};
+
+let isPinned = false;
+
+function minimizeWindow() {
+  ipcRenderer.send('minimize-window');
+}
+
+function closeWindow() {
+  ipcRenderer.send('close-window');
+}
+
+function togglePin() {
+  isPinned = !isPinned;
+  document.getElementById('pin-btn').classList.toggle('pinned');
+  ipcRenderer.send('toggle-always-on-top');
+}
+
+function updateCalendar() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const date = now.getDate();
+  const day = now.getDay();
+  
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  const sixyoList = ['大安', '赤口', '先勝', '友引', '先負', '仏滅'];
+  
+  // 月年表示
+  document.getElementById('month-year').textContent = `${year}年${month}月`;
+  
+  // 日付表示
+  document.getElementById('date-number').textContent = date;
+  
+  // 曜日表示と色分け
+  const weekdayEl = document.getElementById('weekday');
+  weekdayEl.textContent = weekdays[day] + '曜日';
+  weekdayEl.className = 'weekday';
+  
+  // 祝日チェック
+  const dateKey = `${year}-${month}-${date}`;
+  const holidayName = holidays[dateKey];
+  
+  if (holidayName) {
+    weekdayEl.classList.add('holiday');
+    document.getElementById('holiday-name').textContent = holidayName;
+    document.getElementById('holiday-name').classList.add('show');
+  } else {
+    document.getElementById('holiday-name').classList.remove('show');
+    if (day === 0) {
+      weekdayEl.classList.add('weekday-sun');
+    } else if (day === 6) {
+      weekdayEl.classList.add('weekday-sat');
+    } else {
+      weekdayEl.classList.add('weekday-weekday');
+    }
+  }
+  
+  // 六曜計算（旧暦ベースの簡易版）
+  const sixyoIndex = ((month + date - 2) % 6 + 6) % 6;
+  document.getElementById('sixyo').textContent = sixyoList[sixyoIndex];
+}
+
+// 初期化と定期更新
+updateCalendar();
+setInterval(updateCalendar, 60000); // 1分ごとに更新
+
+// 日付が変わるタイミングで更新
+function checkDateChange() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  
+  const msUntilMidnight = tomorrow - now;
+  
+  setTimeout(() => {
+    updateCalendar();
+    setInterval(updateCalendar, 60000);
+  }, msUntilMidnight);
+}
+
+checkDateChange();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+# Codex CLI Configuration for Koubou System
+# Project-specific configuration for Local LLM
+
+# Model configuration
+model = "gpt-oss-20b@f16"
+model_provider = "openai-compatible"
+
+# API Configuration for LMStudio
+[openai_compatible]
+base_url = "http://192.168.11.29:1234/v1"
+api_key = "not-needed"
+
+# Sandbox and approval settings
+sandbox_mode = "workspace-write"
+approval_policy = "on-failure"
+
+# Shell environment
+[shell_environment_policy]
+inherit = "all"
+
+# System settings
+verbose = false
+auto_apply = false
+
+# File handling
+[file_handling]
+auto_add = false
+ignore_patterns = [
+    "*.pyc",
+    "__pycache__",
+    ".git",
+    ".venv",
+    "node_modules",
+    ".koubou",
+    "*.db",
+    "*.log"
+]
+
+# Project-specific settings
+[project]
+root = "/home/hama/project/koubou-system"
+koubou_home = "/home/hama/project/koubou-system/.koubou"

@@ -1,0 +1,277 @@
+<html>
+<head>
+<HTA:APPLICATION 
+    ID="SimpleAnalogClock"
+    APPLICATIONNAME="Simple Clock"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    SCROLL="no"
+    WINDOWSTATE="normal"
+/>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Simple Analog Clock</title>
+<style type="text/css">
+body {
+  margin: 0;
+  padding: 0;
+  background: #2980b9;
+  overflow: hidden;
+  cursor: move;
+}
+
+#clock {
+  width: 200px;
+  height: 200px;
+  position: relative;
+  background: white;
+  border-radius: 100px;
+  border: 5px solid #34495e;
+  margin: 10px;
+}
+
+.marker {
+  position: absolute;
+  font-size: 20px;
+  font-weight: bold;
+  color: #2c3e50;
+  font-family: Arial;
+}
+
+#m12 { left: 88px; top: 5px; }
+#m3 { right: 10px; top: 82px; }
+#m6 { left: 92px; bottom: 5px; }
+#m9 { left: 10px; top: 82px; }
+
+.dot {
+  position: absolute;
+  background: #333;
+  border-radius: 50%;
+}
+
+.hour-dot {
+  width: 4px;
+  height: 4px;
+}
+
+#dot1 { left: 128px; top: 25px; }
+#dot2 { left: 165px; top: 55px; }
+#dot4 { left: 165px; top: 135px; }
+#dot5 { left: 128px; top: 165px; }
+#dot7 { left: 62px; top: 165px; }
+#dot8 { left: 25px; top: 135px; }
+#dot10 { left: 25px; top: 55px; }
+#dot11 { left: 62px; top: 25px; }
+
+.hand {
+  position: absolute;
+  background: #333;
+  transform-origin: bottom center;
+}
+
+#hourHand {
+  width: 6px;
+  height: 60px;
+  left: 97px;
+  top: 50px;
+  background: #2c3e50;
+  border-radius: 3px;
+}
+
+#minuteHand {
+  width: 4px;
+  height: 80px;
+  left: 98px;
+  top: 30px;
+  background: #34495e;
+  border-radius: 2px;
+}
+
+#secondHand {
+  width: 2px;
+  height: 90px;
+  left: 99px;
+  top: 20px;
+  background: #e74c3c;
+  border-radius: 1px;
+}
+
+#center {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #e74c3c;
+  border-radius: 6px;
+  left: 94px;
+  top: 94px;
+  z-index: 1000;
+  border: 2px solid #c0392b;
+}
+
+#closeBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+}
+
+#clock:hover #closeBtn {
+  opacity: 1;
+}
+
+#digitalTime {
+  position: absolute;
+  bottom: -25px;
+  width: 200px;
+  text-align: center;
+  color: white;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+</style>
+<script language="JScript">
+var isDragging = false;
+var mouseX = 0, mouseY = 0;
+
+function init() {
+  window.resizeTo(220, 250);
+  
+  var sw = window.screen.availWidth;
+  var sh = window.screen.availHeight;
+  window.moveTo(sw - 240, sh - 280);
+  
+  updateClock();
+  window.setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+  var now = new Date();
+  var h = now.getHours();
+  var m = now.getMinutes();
+  var s = now.getSeconds();
+  
+  // Digital time
+  var dh = h < 10 ? '0' + h : h;
+  var dm = m < 10 ? '0' + m : m;
+  var ds = s < 10 ? '0' + s : s;
+  document.getElementById('digitalTime').innerHTML = dh + ':' + dm + ':' + ds;
+  
+  // Calculate angles
+  var hourAngle = ((h % 12) * 30) + (m * 0.5) - 90;
+  var minuteAngle = (m * 6) + (s * 0.1) - 90;
+  var secondAngle = (s * 6) - 90;
+  
+  // Move hands using absolute positioning
+  moveHand('hourHand', hourAngle, 60);
+  moveHand('minuteHand', minuteAngle, 80);
+  moveHand('secondHand', secondAngle, 90);
+}
+
+function moveHand(id, angle, length) {
+  var hand = document.getElementById(id);
+  var rad = angle * Math.PI / 180;
+  
+  // Calculate end position
+  var endX = 100 + Math.cos(rad) * length;
+  var endY = 100 + Math.sin(rad) * length;
+  
+  // Use line drawing technique
+  drawLine(hand, 100, 100, endX, endY);
+}
+
+function drawLine(element, x1, y1, x2, y2) {
+  var length = Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+  var angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+  
+  element.style.width = length + 'px';
+  element.style.left = x1 + 'px';
+  element.style.top = y1 + 'px';
+  
+  // Use IE filter for rotation
+  var rad = angle * Math.PI / 180;
+  var cos = Math.cos(rad);
+  var sin = Math.sin(rad);
+  
+  element.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(' +
+    'M11=' + cos + ',M12=' + (-sin) + ',M21=' + sin + ',M22=' + cos + 
+    ',SizingMethod="auto expand")';
+  
+  // Adjust position after rotation
+  var newWidth = Math.abs(length * cos) + Math.abs(element.offsetHeight * sin);
+  var newHeight = Math.abs(length * sin) + Math.abs(element.offsetHeight * cos);
+  
+  element.style.marginLeft = -(newWidth - length) / 2 + 'px';
+  element.style.marginTop = -(newHeight - element.offsetHeight) / 2 + 'px';
+}
+
+function dragStart() {
+  if (window.event.srcElement.id == 'closeBtn') return;
+  isDragging = true;
+  mouseX = window.event.clientX;
+  mouseY = window.event.clientY;
+}
+
+function dragMove() {
+  if (!isDragging) return;
+  var newX = window.event.clientX;
+  var newY = window.event.clientY;
+  window.moveBy(newX - mouseX, newY - mouseY);
+}
+
+function dragEnd() {
+  isDragging = false;
+}
+
+function closeApp() {
+  window.close();
+}
+</script>
+</head>
+<body onload="init()" onmousedown="dragStart()" onmousemove="dragMove()" onmouseup="dragEnd()">
+
+<div id="clock">
+  <button id="closeBtn" onclick="closeApp()">×</button>
+  
+  <!-- Numbers -->
+  <div class="marker" id="m12">12</div>
+  <div class="marker" id="m3">3</div>
+  <div class="marker" id="m6">6</div>
+  <div class="marker" id="m9">9</div>
+  
+  <!-- Hour dots -->
+  <div class="dot hour-dot" id="dot1"></div>
+  <div class="dot hour-dot" id="dot2"></div>
+  <div class="dot hour-dot" id="dot4"></div>
+  <div class="dot hour-dot" id="dot5"></div>
+  <div class="dot hour-dot" id="dot7"></div>
+  <div class="dot hour-dot" id="dot8"></div>
+  <div class="dot hour-dot" id="dot10"></div>
+  <div class="dot hour-dot" id="dot11"></div>
+  
+  <!-- Clock hands -->
+  <div class="hand" id="hourHand"></div>
+  <div class="hand" id="minuteHand"></div>
+  <div class="hand" id="secondHand"></div>
+  
+  <!-- Center -->
+  <div id="center"></div>
+  
+  <!-- Digital time -->
+  <div id="digitalTime"></div>
+</div>
+
+</body>
+</html>

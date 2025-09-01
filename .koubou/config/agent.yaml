@@ -1,0 +1,25 @@
+# 工房システム エージェント設定
+system:
+  name: "koubou-poc"
+  version: "0.1.0"
+  base_path: "/home/hama/project/koubou-system/.koubou"
+  
+database:
+  type: "sqlite"
+  path: "/home/hama/project/koubou-system/.koubou/db/koubou.db"
+  
+logging:
+  level: "INFO"
+  path: "/home/hama/project/koubou-system/.koubou/logs"
+  
+workers:
+  local:
+    enabled: true
+    model: "gpt-oss-20b@f16"
+    endpoint: "http://192.168.11.29:1234/v1"
+    max_concurrent: 3
+    
+mcp:
+  enabled: true
+  server_path: "/home/hama/project/koubou-system/.koubou/scripts/mcp_server.py"
+  port: 8765

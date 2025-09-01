@@ -1,0 +1,13 @@
+{
+  "name": "sticky-board-app",
+  "version": "1.0.0",
+  "description": "A sticky note board application for brainstorming and memo management",
+  "scripts": {
+    "frontend": "cd frontend && python -m http.server 8000",
+    "backend": "cd backend && python app.py",
+    "dev": "echo 'Start frontend: npm run frontend' && echo 'Start backend: npm run backend'"
+  },
+  "keywords": ["sticky-notes", "brainstorming", "memo", "board"],
+  "author": "Koubou System",
+  "license": "MIT"
+}

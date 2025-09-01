@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工房システム ダッシュボード - デモ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .status.connected {
+            background: #10b981;
+            color: white;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .log-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f9fafb;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 3px;
+            font-size: 13px;
+            border-left: 3px solid #ddd;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .log-entry.task {
+            border-left-color: #3b82f6;
+        }
+        
+        .log-entry.worker {
+            border-left-color: #10b981;
+        }
+        
+        .log-entry.system {
+            border-left-color: #f59e0b;
+        }
+        
+        .log-entry .timestamp {
+            color: #9ca3af;
+            font-size: 11px;
+        }
+        
+        .worker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .worker-item {
+            padding: 10px;
+            background: #f3f4f6;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .worker-status {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .worker-status.idle {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .worker-status.busy {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e5e7eb;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #4f46e5;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: none;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+        
+        .notification.show {
+            display: block;
+        }
+        
+        .notification.success {
+            border-left: 4px solid #10b981;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                🏭 工房システム ダッシュボード
+                <span class="status connected">接続中</span>
+                <span style="margin-left: auto; font-size: 14px; color: #6b7280; font-weight: normal;">
+                    デモモード - 実データ表示
+                </span>
+            </h1>
+        </header>
+        
+        <div class="dashboard">
+            <!-- タスク統計 -->
+            <div class="card">
+                <h2>📊 タスク統計</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">保留中</span>
+                        <span class="stat-value pulse" style="color: #f59e0b;">12</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">処理中</span>
+                        <span class="stat-value" style="color: #3b82f6;">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">完了</span>
+                        <span class="stat-value" style="color: #10b981;">247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">失敗</span>
+                        <span class="stat-value" style="color: #ef4444;">8</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ワーカー状態 -->
+            <div class="card">
+                <h2>👷 ワーカー状態</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">総ワーカー数</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">稼働中</span>
+                        <span class="stat-value" style="color: #f59e0b;">2</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">待機中</span>
+                        <span class="stat-value" style="color: #10b981;">1</span>
+                    </div>
+                </div>
+                <div class="progress-bar" style="margin-top: 15px;">
+                    <div class="progress-fill" style="width: 66%">
+                        使用率: 66%
+                    </div>
+                </div>
+            </div>
+            
+            <!-- パフォーマンス -->
+            <div class="card">
+                <h2>⚡ パフォーマンス</h2>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">完了タスク総数</span>
+                        <span class="stat-value">247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">失敗タスク総数</span>
+                        <span class="stat-value">8</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">成功率</span>
+                        <span class="stat-value" style="color: #10b981;">96.9%</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- アクティブワーカー -->
+            <div class="card">
+                <h2>🔧 アクティブワーカー</h2>
+                <div class="worker-list">
+                    <div class="worker-item">
+                        <span>worker_20250829_143521</span>
+                        <span class="worker-status busy">BUSY</span>
+                    </div>
+                    <div class="worker-item">
+                        <span>worker_20250829_143522</span>
+                        <span class="worker-status busy">BUSY</span>
+                    </div>
+                    <div class="worker-item">
+                        <span>worker_20250829_143523</span>
+                        <span class="worker-status idle">IDLE</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- リアルタイムログ -->
+            <div class="card" style="grid-column: span 2;">
+                <h2>📝 リアルタイムログ</h2>
+                <div class="controls">
+                    <button onclick="addDemoLog()">デモログ追加</button>
+                    <button onclick="clearLogs()">ログクリア</button>
+                    <button>自動スクロール: ON</button>
+                </div>
+                <div id="logContainer" class="log-container" style="margin-top: 10px;">
+                    <div class="log-entry system">
+                        <div class="timestamp">14:35:21</div>
+                        <div>System: ワーカープール起動完了</div>
+                    </div>
+                    <div class="log-entry worker">
+                        <div class="timestamp">14:35:22</div>
+                        <div>Worker worker_20250829_143521: IDLE → BUSY</div>
+                    </div>
+                    <div class="log-entry task">
+                        <div class="timestamp">14:35:23</div>
+                        <div>Task task_20250829_143523_001: PENDING → IN_PROGRESS</div>
+                    </div>
+                    <div class="log-entry task">
+                        <div class="timestamp">14:35:25</div>
+                        <div>Task task_20250829_143523_001: IN_PROGRESS → COMPLETED</div>
+                    </div>
+                    <div class="log-entry worker">
+                        <div class="timestamp">14:35:26</div>
+                        <div>Worker worker_20250829_143521: BUSY → IDLE</div>
+                    </div>
+                    <div class="log-entry system">
+                        <div class="timestamp">14:35:30</div>
+                        <div>System: 新しいタスクバッチを受信 (5 tasks)</div>
+                    </div>
+                    <div class="log-entry worker">
+                        <div class="timestamp">14:35:31</div>
+                        <div>Worker worker_20250829_143522: IDLE → BUSY</div>
+                    </div>
+                    <div class="log-entry task">
+                        <div class="timestamp">14:35:32</div>
+                        <div>Task task_20250829_143532_002: PENDING → IN_PROGRESS</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 通知 -->
+    <div id="notification" class="notification">
+        <strong>タスク完了</strong>
+        <p>task_20250829_143523_001 が正常に完了しました</p>
+    </div>
+    
+    <script>
+        // デモ用のインタラクティブ機能
+        let logCount = 0;
+        const logTypes = ['task', 'worker', 'system'];
+        const logMessages = [
+            { type: 'task', msg: 'Task task_${id}: PENDING → IN_PROGRESS' },
+            { type: 'task', msg: 'Task task_${id}: IN_PROGRESS → COMPLETED' },
+            { type: 'worker', msg: 'Worker worker_${id}: IDLE → BUSY' },
+            { type: 'worker', msg: 'Worker worker_${id}: BUSY → IDLE' },
+            { type: 'system', msg: 'System: ワーカースケーリング実行 (3 → 4 workers)' },
+            { type: 'system', msg: 'System: タスクキュー最適化完了' },
+        ];
+        
+        function addDemoLog() {
+            const container = document.getElementById('logContainer');
+            const log = logMessages[Math.floor(Math.random() * logMessages.length)];
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${log.type}`;
+            
+            const timestamp = new Date().toLocaleTimeString('ja-JP');
+            const id = Date.now().toString().slice(-6);
+            
+            entry.innerHTML = `
+                <div class="timestamp">${timestamp}</div>
+                <div>${log.msg.replace('${id}', id)}</div>
+            `;
+            
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+            
+            // 統計を更新（デモ用）
+            updateStats();
+            
+            // 通知を表示
+            if (Math.random() > 0.7) {
+                showNotification();
+            }
+        }
+        
+        function clearLogs() {
+            const container = document.getElementById('logContainer');
+            container.innerHTML = `
+                <div class="log-entry system">
+                    <div class="timestamp">${new Date().toLocaleTimeString('ja-JP')}</div>
+                    <div>System: ログをクリアしました</div>
+                </div>
+            `;
+        }
+        
+        function updateStats() {
+            // ランダムに統計を更新（デモ用）
+            const pendingEl = document.querySelector('.stat-value.pulse');
+            const pending = parseInt(pendingEl.textContent);
+            pendingEl.textContent = Math.max(0, pending + Math.floor(Math.random() * 3) - 1);
+        }
+        
+        function showNotification() {
+            const notification = document.getElementById('notification');
+            notification.classList.add('show', 'success');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 自動更新シミュレーション
+        setInterval(() => {
+            if (Math.random() > 0.5) {
+                addDemoLog();
+            }
+        }, 5000);
+        
+        // 初期アニメーション
+        setTimeout(() => {
+            showNotification();
+        }, 1000);
+    </script>
+</body>
+</html>

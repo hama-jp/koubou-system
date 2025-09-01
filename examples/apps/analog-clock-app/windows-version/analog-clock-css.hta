@@ -1,0 +1,271 @@
+<html>
+<head>
+<HTA:APPLICATION 
+    ID="CSSAnalogClock"
+    APPLICATIONNAME="CSS Clock"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    SCROLL="no"
+    WINDOWSTATE="normal"
+/>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=9">
+<title>CSS Analog Clock</title>
+<style type="text/css">
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to bottom, #2c3e50, #34495e);
+  overflow: hidden;
+  cursor: move;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.clock {
+  width: 180px;
+  height: 180px;
+  background: white;
+  border-radius: 50%;
+  position: relative;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.5);
+  border: 8px solid #34495e;
+}
+
+.clock-face {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.hand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-origin: 50% 95%;
+  background: #333;
+}
+
+.hour-hand {
+  width: 6px;
+  height: 50px;
+  margin-left: -3px;
+  margin-top: -48px;
+  background: #333;
+  border-radius: 3px 3px 0 0;
+}
+
+.minute-hand {
+  width: 4px;
+  height: 70px;
+  margin-left: -2px;
+  margin-top: -68px;
+  background: #666;
+  border-radius: 2px 2px 0 0;
+}
+
+.second-hand {
+  width: 2px;
+  height: 80px;
+  margin-left: -1px;
+  margin-top: -78px;
+  background: #e74c3c;
+  border-radius: 1px 1px 0 0;
+}
+
+.center-dot {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #e74c3c;
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  margin-left: -6px;
+  margin-top: -6px;
+  z-index: 10;
+  box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+.number {
+  position: absolute;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.number12 { left: 50%; margin-left: -8px; top: 10px; }
+.number3 { right: 15px; top: 50%; margin-top: -10px; }
+.number6 { left: 50%; margin-left: -5px; bottom: 10px; }
+.number9 { left: 15px; top: 50%; margin-top: -10px; }
+
+.hour-mark {
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: #95a5a6;
+  left: 50%;
+  margin-left: -1px;
+  transform-origin: center 90px;
+}
+
+.mark1 { transform: rotate(30deg); }
+.mark2 { transform: rotate(60deg); }
+.mark4 { transform: rotate(120deg); }
+.mark5 { transform: rotate(150deg); }
+.mark7 { transform: rotate(210deg); }
+.mark8 { transform: rotate(240deg); }
+.mark10 { transform: rotate(300deg); }
+.mark11 { transform: rotate(330deg); }
+
+#closeBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 100;
+}
+
+.clock:hover #closeBtn {
+  opacity: 0.9;
+}
+
+#closeBtn:hover {
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
+</style>
+<script language="JScript">
+var isDragging = false;
+var mouseX = 0, mouseY = 0;
+
+function init() {
+  // Window size
+  window.resizeTo(220, 220);
+  
+  // Position
+  var sw = window.screen.availWidth;
+  var sh = window.screen.availHeight;
+  window.moveTo(sw - 240, sh - 250);
+  
+  // Start clock
+  updateClock();
+  window.setInterval(updateClock, 1000);
+}
+
+function updateClock() {
+  var now = new Date();
+  var hours = now.getHours();
+  var minutes = now.getMinutes();
+  var seconds = now.getSeconds();
+  
+  // Calculate rotation degrees (0 degree = 12 o'clock)
+  var hourDeg = ((hours % 12) * 30) + (minutes * 0.5);
+  var minuteDeg = (minutes * 6) + (seconds * 0.1);
+  var secondDeg = seconds * 6;
+  
+  // Apply rotations with multiple browser prefixes
+  var hourHand = document.getElementById('hourHand');
+  var minuteHand = document.getElementById('minuteHand');
+  var secondHand = document.getElementById('secondHand');
+  
+  // For IE9+
+  hourHand.style.msTransform = 'rotate(' + hourDeg + 'deg)';
+  minuteHand.style.msTransform = 'rotate(' + minuteDeg + 'deg)';
+  secondHand.style.msTransform = 'rotate(' + secondDeg + 'deg)';
+  
+  // For standard browsers
+  hourHand.style.transform = 'rotate(' + hourDeg + 'deg)';
+  minuteHand.style.transform = 'rotate(' + minuteDeg + 'deg)';
+  secondHand.style.transform = 'rotate(' + secondDeg + 'deg)';
+  
+  // For older IE using filter
+  setRotation(hourHand, hourDeg);
+  setRotation(minuteHand, minuteDeg);
+  setRotation(secondHand, secondDeg);
+}
+
+function setRotation(element, degrees) {
+  var rad = degrees * Math.PI / 180;
+  var cos = Math.cos(rad);
+  var sin = Math.sin(rad);
+  
+  // IE Matrix filter
+  element.style.filter = 'progid:DXImageTransform.Microsoft.Matrix(' +
+    'M11=' + cos + ',M12=' + (-sin) + ',M21=' + sin + ',M22=' + cos + 
+    ',SizingMethod="auto expand")';
+}
+
+function dragStart() {
+  if (window.event.srcElement.id == 'closeBtn') return;
+  isDragging = true;
+  mouseX = window.event.clientX;
+  mouseY = window.event.clientY;
+}
+
+function dragMove() {
+  if (!isDragging) return;
+  var newX = window.event.clientX;
+  var newY = window.event.clientY;
+  window.moveBy(newX - mouseX, newY - mouseY);
+}
+
+function dragEnd() {
+  isDragging = false;
+}
+
+function closeApp() {
+  window.close();
+}
+</script>
+</head>
+<body onload="init()" onmousedown="dragStart()" onmousemove="dragMove()" onmouseup="dragEnd()">
+
+<div class="clock">
+  <button id="closeBtn" onclick="closeApp()">×</button>
+  
+  <div class="clock-face">
+    <!-- Numbers -->
+    <div class="number number12">12</div>
+    <div class="number number3">3</div>
+    <div class="number number6">6</div>
+    <div class="number number9">9</div>
+    
+    <!-- Hour marks -->
+    <div class="hour-mark mark1"></div>
+    <div class="hour-mark mark2"></div>
+    <div class="hour-mark mark4"></div>
+    <div class="hour-mark mark5"></div>
+    <div class="hour-mark mark7"></div>
+    <div class="hour-mark mark8"></div>
+    <div class="hour-mark mark10"></div>
+    <div class="hour-mark mark11"></div>
+    
+    <!-- Hands -->
+    <div class="hand hour-hand" id="hourHand"></div>
+    <div class="hand minute-hand" id="minuteHand"></div>
+    <div class="hand second-hand" id="secondHand"></div>
+    
+    <!-- Center dot -->
+    <div class="center-dot"></div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<HTA:APPLICATION 
+    ID="DailyCalendarWidget"
+    APPLICATIONNAME="日めくりカレンダー"
+    BORDER="none"
+    BORDERSTYLE="normal"
+    CAPTION="no"
+    ICON="calendar.ico"
+    MAXIMIZEBUTTON="no"
+    MINIMIZEBUTTON="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    VERSION="1.0"
+    WINDOWSTATE="normal"
+    SCROLL="no"
+    CONTEXTMENU="no"
+    SELECTION="no"
+    NAVIGABLE="no"
+/>
+<meta charset="UTF-8">
+<title>日めくりカレンダー ウィジェット</title>
+<style>
+/* Windows版用にカスタマイズしたスタイル */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body {
+  font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+  background: transparent;
+  overflow: hidden;
+  cursor: move;
+}
+
+#daily-calendar-widget {
+  width: 200px;
+  height: 220px;
+  padding: 15px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(240,240,240,0.95) 100%);
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  text-align: center;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+  height: 20px;
+  background: #ff4444;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#daily-calendar-widget:hover .close-btn {
+  opacity: 1;
+}
+
+.minimize-btn {
+  position: absolute;
+  top: 5px;
+  right: 30px;
+  width: 20px;
+  height: 20px;
+  background: #ffaa00;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#daily-calendar-widget:hover .minimize-btn {
+  opacity: 1;
+}
+
+.header {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.date-container {
+  margin: 20px 0;
+}
+
+.date-number {
+  font-size: 72px;
+  font-weight: bold;
+  display: block;
+  line-height: 1;
+  color: #333;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.weekday {
+  font-size: 24px;
+  margin-top: 10px;
+  display: block;
+  font-weight: bold;
+}
+
+.weekday-sat { color: #1e90ff; }
+.weekday-sun, .holiday { color: #ff4500; }
+.weekday-weekday { color: #333; }
+
+.footer {
+  position: absolute;
+  bottom: 15px;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.sixyo {
+  font-size: 16px;
+  color: #888;
+  padding: 4px 12px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 12px;
+  display: inline-block;
+}
+
+/* アニメーション */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#daily-calendar-widget {
+  animation: fadeIn 0.5s ease-out;
+}
+</style>
+<script>
+// ウィンドウをドラッグ可能にする
+var dragStartX, dragStartY;
+var isDragging = false;
+
+function startDrag(e) {
+  if (e.target.classList.contains('close-btn') || 
+      e.target.classList.contains('minimize-btn')) return;
+  
+  isDragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  return false;
+}
+
+function doDrag() {
+  if (!isDragging) return;
+  
+  var x = window.event.clientX;
+  var y = window.event.clientY;
+  
+  window.moveBy(x - dragStartX, y - dragStartY);
+  return false;
+}
+
+function stopDrag() {
+  isDragging = false;
+}
+
+// ウィンドウサイズとポジション設定
+window.onload = function() {
+  // ウィンドウサイズ設定
+  window.resizeTo(220, 250);
+  
+  // 画面右下に配置
+  var screenWidth = window.screen.availWidth;
+  var screenHeight = window.screen.availHeight;
+  window.moveTo(screenWidth - 240, screenHeight - 280);
+  
+  // 日付更新開始
+  updateCalendar();
+  setInterval(updateCalendar, 1000);
+  
+  // 最前面表示の切り替え（ダブルクリック）
+  document.getElementById('daily-calendar-widget').ondblclick = function() {
+    toggleAlwaysOnTop();
+  };
+};
+
+// 最前面表示切り替え（HTAの制限により動作しない場合あり）
+var alwaysOnTop = false;
+function toggleAlwaysOnTop() {
+  alwaysOnTop = !alwaysOnTop;
+  // HTAでは直接制御できないため、視覚的フィードバックのみ
+  document.getElementById('daily-calendar-widget').style.opacity = alwaysOnTop ? '1' : '0.95';
+}
+
+// 最小化
+function minimizeWindow() {
+  // HTAのウィンドウを最小化
+  window.blur();
+}
+
+// 閉じる
+function closeWindow() {
+  window.close();
+}
+
+// カレンダー更新関数
+function updateCalendar() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth() + 1;
+  var date = now.getDate();
+  var day = now.getDay();
+  
+  var weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  var sixyoList = ['大安', '仏滅', '赤口', '先勝', '友引', '先負'];
+  
+  // 月年表示
+  document.getElementById('month-year').innerText = year + '年' + month + '月';
+  
+  // 日付表示
+  document.getElementById('date-number').innerText = date;
+  
+  // 曜日表示と色分け
+  var weekdayEl = document.getElementById('weekday');
+  weekdayEl.innerText = weekdays[day] + '曜日';
+  weekdayEl.className = 'weekday';
+  
+  if (day === 0) {
+    weekdayEl.className += ' weekday-sun';
+  } else if (day === 6) {
+    weekdayEl.className += ' weekday-sat';
+  } else {
+    weekdayEl.className += ' weekday-weekday';
+  }
+  
+  // 祝日チェック（簡易版）
+  if (isHoliday(year, month, date)) {
+    weekdayEl.className += ' holiday';
+  }
+  
+  // 六曜計算（簡易版）
+  var sixyoIndex = (month + date) % 6;
+  document.getElementById('sixyo').innerText = sixyoList[sixyoIndex];
+}
+
+// 祝日判定（簡易版）
+function isHoliday(year, month, date) {
+  var holidays = [
+    '1-1', '1-8', '2-11', '2-23', '3-20', '4-29',
+    '5-3', '5-4', '5-5', '7-21', '8-11', '9-18',
+    '9-23', '10-9', '11-3', '11-23'
+  ];
+  
+  var dateStr = month + '-' + date;
+  
+  // Array.includes()はIEで使えないので代替
+  for (var i = 0; i < holidays.length; i++) {
+    if (holidays[i] === dateStr) {
+      return true;
+    }
+  }
+  return false;
+}
+</script>
+</head>
+<body onmousedown="startDrag(event)" onmousemove="doDrag()" onmouseup="stopDrag()">
+
+<div id="daily-calendar-widget">
+  <div class="close-btn" onclick="closeWindow()">×</div>
+  <div class="minimize-btn" onclick="minimizeWindow()">−</div>
+  <div class="header">
+    <span id="month-year"></span>
+  </div>
+  <div class="date-container">
+    <span id="date-number" class="date-number"></span>
+    <span id="weekday" class="weekday"></span>
+  </div>
+  <div class="footer">
+    <span id="sixyo" class="sixyo"></span>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,407 @@
+<html>
+<head>
+<HTA:APPLICATION 
+    ID="SmoothAnalogClock"
+    APPLICATIONNAME="Smooth Clock"
+    BORDER="none"
+    CAPTION="no"
+    SHOWINTASKBAR="yes"
+    SINGLEINSTANCE="yes"
+    SYSMENU="no"
+    SCROLL="no"
+    WINDOWSTATE="normal"
+    CONTEXTMENU="no"
+    SELECTION="no"
+/>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Smooth Analog Clock</title>
+<style type="text/css">
+body {
+  margin: 0;
+  padding: 0;
+  background: #2c3e50;
+  overflow: hidden;
+  cursor: move;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+#main {
+  width: 250px;
+  height: 250px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+#clockCanvas {
+  width: 220px;
+  height: 220px;
+  background: linear-gradient(145deg, #ffffff, #e6e6e6);
+  border-radius: 50%;
+  box-shadow: 
+    20px 20px 60px #1a252f,
+    -20px -20px 60px #3e5871,
+    inset 0 0 20px rgba(0,0,0,0.1);
+}
+
+.control-btn {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#main:hover .control-btn {
+  opacity: 0.8;
+}
+
+.control-btn:hover {
+  opacity: 1 !important;
+}
+
+#closeBtn {
+  top: 10px;
+  right: 10px;
+  background: linear-gradient(145deg, #ff6b6b, #ff5252);
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#pinBtn {
+  top: 10px;
+  left: 10px;
+  background: linear-gradient(145deg, #4ecdc4, #44a39a);
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+#sizeBtn {
+  bottom: 10px;
+  right: 10px;
+  background: linear-gradient(145deg, #95a5a6, #7f8c8d);
+  box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+.pinned {
+  background: linear-gradient(145deg, #f39c12, #e67e22) !important;
+}
+
+#digitalTime {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ecf0f1;
+  font-size: 14px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+#main:hover #digitalTime {
+  opacity: 0.8;
+}
+</style>
+<script language="JScript">
+// Global variables
+var canvas, ctx, radius;
+var isDragging = false;
+var mouseX = 0, mouseY = 0;
+var isPinned = false;
+var isLarge = false;
+var animationId = null;
+
+function init() {
+  // Set initial window size
+  resizeWindow(false);
+  
+  // Position window
+  var sw = window.screen.availWidth;
+  var sh = window.screen.availHeight;
+  window.moveTo(sw - 280, sh - 310);
+  
+  // Initialize canvas with delay for HTA
+  window.setTimeout(function() {
+    canvas = document.getElementById('clockCanvas');
+    if (!canvas || !canvas.getContext) {
+      // Fallback if canvas not supported
+      alert('Canvas not supported in this HTA environment');
+      return;
+    }
+    ctx = canvas.getContext('2d');
+    
+    setupCanvas();
+    
+    // Start animation
+    animate();
+  }, 100);
+}
+
+function setupCanvas() {
+  if (isLarge) {
+    canvas.width = 320;
+    canvas.height = 320;
+    ctx.translate(160, 160);
+    radius = 150;
+  } else {
+    canvas.width = 220;
+    canvas.height = 220;
+    ctx.translate(110, 110);
+    radius = 100;
+  }
+}
+
+function resizeWindow(large) {
+  if (large) {
+    window.resizeTo(350, 380);
+    document.getElementById('main').style.width = '350px';
+    document.getElementById('main').style.height = '350px';
+    document.getElementById('clockCanvas').style.width = '320px';
+    document.getElementById('clockCanvas').style.height = '320px';
+  } else {
+    window.resizeTo(250, 280);
+    document.getElementById('main').style.width = '250px';
+    document.getElementById('main').style.height = '250px';
+    document.getElementById('clockCanvas').style.width = '220px';
+    document.getElementById('clockCanvas').style.height = '220px';
+  }
+}
+
+function animate() {
+  drawClock();
+  updateDigitalTime();
+  animationId = window.setTimeout(animate, 50); // 20 FPS for smooth movement
+}
+
+function drawClock() {
+  // Clear and draw face
+  drawFace();
+  drawNumbers();
+  drawTime();
+}
+
+function drawFace() {
+  // Clear
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.restore();
+  
+  // Outer circle
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fafafa';
+  ctx.fill();
+  
+  // Gradient border
+  var gradient = ctx.createRadialGradient(0, 0, radius * 0.95, 0, 0, radius);
+  gradient.addColorStop(0, '#34495e');
+  gradient.addColorStop(0.5, '#2c3e50');
+  gradient.addColorStop(1, '#1a252f');
+  ctx.strokeStyle = gradient;
+  ctx.lineWidth = radius * 0.05;
+  ctx.stroke();
+  
+  // Inner circle decoration
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.88, 0, 2 * Math.PI);
+  ctx.strokeStyle = '#ecf0f1';
+  ctx.lineWidth = radius * 0.005;
+  ctx.stroke();
+  
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.04, 0, 2 * Math.PI);
+  ctx.fillStyle = '#2c3e50';
+  ctx.fill();
+  
+  // Decorative center ring
+  ctx.beginPath();
+  ctx.arc(0, 0, radius * 0.03, 0, 2 * Math.PI);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = radius * 0.01;
+  ctx.stroke();
+}
+
+function drawNumbers() {
+  var ang, num;
+  
+  // Roman numerals for elegance
+  var numerals = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+  
+  ctx.font = 'bold ' + (radius * 0.12) + 'px Georgia';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#2c3e50';
+  
+  // Draw all numbers
+  for (num = 0; num < 12; num++) {
+    ang = (num - 2) * Math.PI / 6; // Adjust for XII at top
+    ctx.save();
+    ctx.rotate(ang);
+    ctx.translate(0, -radius * 0.75);
+    ctx.rotate(-ang);
+    ctx.fillText(numerals[num], 0, 0);
+    ctx.restore();
+  }
+  
+  // Hour marks
+  for (num = 1; num <= 60; num++) {
+    ang = num * Math.PI / 30;
+    ctx.save();
+    ctx.rotate(ang);
+    ctx.beginPath();
+    
+    if (num % 5 === 0) {
+      // Hour marks
+      ctx.moveTo(0, -radius * 0.92);
+      ctx.lineTo(0, -radius * 0.85);
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineWidth = radius * 0.02;
+    } else {
+      // Minute marks
+      ctx.moveTo(0, -radius * 0.92);
+      ctx.lineTo(0, -radius * 0.89);
+      ctx.strokeStyle = '#95a5a6';
+      ctx.lineWidth = radius * 0.005;
+    }
+    
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+function drawTime() {
+  var now = new Date();
+  var hour = now.getHours();
+  var minute = now.getMinutes();
+  var second = now.getSeconds();
+  var millisecond = now.getMilliseconds();
+  
+  // Calculate smooth angles
+  var smoothSecond = second + millisecond / 1000;
+  var smoothMinute = minute + smoothSecond / 60;
+  var smoothHour = (hour % 12) + smoothMinute / 60;
+  
+  // Hour hand
+  var hourAngle = smoothHour * Math.PI / 6;
+  drawHand(hourAngle, radius * 0.5, radius * 0.06, '#2c3e50', true);
+  
+  // Minute hand
+  var minuteAngle = smoothMinute * Math.PI / 30;
+  drawHand(minuteAngle, radius * 0.75, radius * 0.04, '#34495e', true);
+  
+  // Second hand
+  var secondAngle = smoothSecond * Math.PI / 30;
+  drawHand(secondAngle, radius * 0.85, radius * 0.015, '#e74c3c', false);
+}
+
+function drawHand(pos, length, width, color, hasShadow) {
+  ctx.save();
+  
+  if (hasShadow) {
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+  }
+  
+  ctx.beginPath();
+  ctx.lineWidth = width;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = color;
+  ctx.moveTo(0, 0);
+  ctx.rotate(pos);
+  ctx.lineTo(0, -length);
+  ctx.stroke();
+  
+  // Decorative tail
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(0, length * 0.15);
+  ctx.stroke();
+  
+  ctx.restore();
+}
+
+function updateDigitalTime() {
+  var now = new Date();
+  var h = now.getHours();
+  var m = now.getMinutes();
+  var s = now.getSeconds();
+  
+  h = (h < 10) ? '0' + h : h;
+  m = (m < 10) ? '0' + m : m;
+  s = (s < 10) ? '0' + s : s;
+  
+  document.getElementById('digitalTime').innerHTML = h + ':' + m + ':' + s;
+}
+
+// Control functions
+function dragStart() {
+  var src = window.event.srcElement;
+  if (src.className && src.className.indexOf('control-btn') >= 0) {
+    return;
+  }
+  if (!isPinned) {
+    isDragging = true;
+    mouseX = window.event.clientX;
+    mouseY = window.event.clientY;
+  }
+}
+
+function dragMove() {
+  if (!isDragging || isPinned) return;
+  
+  var newX = window.event.clientX;
+  var newY = window.event.clientY;
+  
+  window.moveBy(newX - mouseX, newY - mouseY);
+}
+
+function dragEnd() {
+  isDragging = false;
+}
+
+function closeApp() {
+  if (animationId) {
+    window.clearTimeout(animationId);
+  }
+  window.close();
+}
+
+function togglePin() {
+  isPinned = !isPinned;
+  var btn = document.getElementById('pinBtn');
+  btn.className = isPinned ? 'control-btn pinned' : 'control-btn';
+  btn.innerHTML = isPinned ? '★' : '☆';
+}
+
+function toggleSize() {
+  isLarge = !isLarge;
+  resizeWindow(isLarge);
+  setupCanvas();
+  document.getElementById('sizeBtn').innerHTML = isLarge ? '−' : '+';
+}
+</script>
+</head>
+<body onload="init()" onmousedown="dragStart()" onmousemove="dragMove()" onmouseup="dragEnd()">
+
+<div id="main">
+  <button id="closeBtn" class="control-btn" onclick="closeApp()">×</button>
+  <button id="pinBtn" class="control-btn" onclick="togglePin()">☆</button>
+  <button id="sizeBtn" class="control-btn" onclick="toggleSize()">+</button>
+  <canvas id="clockCanvas"></canvas>
+  <div id="digitalTime"></div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,234 @@
+// ========== timer.html ==========
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>カウントダウンタイマー</title>
+  <link rel="stylesheet" href="timer.css">
+</head>
+<body>
+  <div class="container">
+    <h1>カウントダウンタイマー</h1>
+    <div class="input-group">
+      <label for="minutes">分</label>
+      <input type="number" id="minutes" min="0" value="0" placeholder="0">
+      <label for="seconds">秒</label>
+      <input type="number" id="seconds" min="0" max="59" value="0" placeholder="0">
+    </div>
+    <div class="display" id="display">00:00</div>
+    <div class="controls">
+      <button id="startBtn">スタート</button>
+      <button id="pauseBtn" disabled>ポーズ</button>
+      <button id="resetBtn" disabled>リセット</button>
+    </div>
+    <div class="dark-mode-toggle">
+      <label for="darkModeSwitch">ダークモード</label>
+      <input type="checkbox" id="darkModeSwitch">
+    </div>
+  </div>
+
+  <script src="timer.js"></script>
+</body>
+</html>
+
+// ========== timer.css ==========
+:root {
+  --bg-light: #f5f5f5;
+  --bg-dark: #121212;
+  --text-light: #212121;
+  --text-dark: #e0e0e0;
+  --accent: #6200ee;
+  --accent-light: #bb86fc;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-light);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
+}
+
+.container {
+  max-width: 400px;
+  margin: 5vh auto;
+  padding: 20px;
+  text-align: center;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+body.dark-mode .container {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+h1 {
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+}
+
+.input-group {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  font-weight: bold;
+}
+
+.input-group input {
+  width: 60px;
+  padding: 5px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+body.dark-mode .input-group input {
+  background-color: #333;
+  color: #fff;
+  border-color: #555;
+}
+
+.display {
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 20px 0;
+}
+
+.controls button {
+  padding: 10px 20px;
+  margin: 0 5px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.controls button:hover:not(:disabled) {
+  background-color: var(--accent-light);
+}
+
+.controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#startBtn { background-color: var(--accent); color: #fff; }
+#pauseBtn { background-color: #ff9800; color: #fff; }
+#resetBtn { background-color: #f44336; color: #fff; }
+
+.dark-mode-toggle {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dark-mode-toggle input {
+  width: 20px;
+  height: 20px;
+}
+
+// ========== timer.js ==========
+document.addEventListener('DOMContentLoaded', () => {
+  const minutesInput = document.getElementById('minutes');
+  const secondsInput = document.getElementById('seconds');
+  const display = document.getElementById('display');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const darkModeSwitch = document.getElementById('darkModeSwitch');
+
+  let totalSeconds = 0;
+  let intervalId = null;
+  let isPaused = false;
+
+  function updateDisplay(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function startTimer() {
+    if (intervalId) return; // already running
+
+    const mins = parseInt(minutesInput.value, 10) || 0;
+    const secs = parseInt(secondsInput.value, 10) || 0;
+    totalSeconds = mins * 60 + secs;
+
+    if (totalSeconds <= 0) {
+      alert('時間を設定してください。');
+      return;
+    }
+
+    updateDisplay(totalSeconds);
+    startBtn.disabled = true;
+    pauseBtn.disabled = false;
+    resetBtn.disabled = false;
+    minutesInput.disabled = true;
+    secondsInput.disabled = true;
+    isPaused = false;
+
+    intervalId = setInterval(() => {
+      if (isPaused) return;
+      totalSeconds--;
+      updateDisplay(totalSeconds);
+      if (totalSeconds <= 0) {
+        clearInterval(intervalId);
+        intervalId = null;
+        alert('タイマーが終了しました！');
+        resetTimer();
+      }
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    if (!intervalId) return;
+    isPaused = !isPaused;
+    pauseBtn.textContent = isPaused ? '再開' : 'ポーズ';
+  }
+
+  function resetTimer() {
+    clearInterval(intervalId);
+    intervalId = null;
+    totalSeconds = 0;
+    updateDisplay(0);
+    startBtn.disabled = false;
+    pauseBtn.disabled = true;
+    resetBtn.disabled = true;
+    pauseBtn.textContent = 'ポーズ';
+    minutesInput.disabled = false;
+    secondsInput.disabled = false;
+    isPaused = false;
+  }
+
+  function toggleDarkMode(e) {
+    if (e.target.checked) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }
+
+  // Event listeners
+  startBtn.addEventListener('click', startTimer);
+  pauseBtn.addEventListener('click', pauseTimer);
+  resetBtn.addEventListener('click', resetTimer);
+  darkModeSwitch.addEventListener('change', toggleDarkMode);
+
+  // Initialize display
+  updateDisplay(0);
+});

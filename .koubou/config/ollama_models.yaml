@@ -1,0 +1,119 @@
+default_model: gpt-oss-20b
+server:
+  host: http://localhost:11434
+  timeout: 300
+  retry_count: 3
+  retry_delay: 5
+
+models:
+  gpt-oss-20b:
+    name: gpt-oss:20b
+    description: 高性能な20Bパラメータモデル。複雑なタスクに適している
+    options:
+      temperature: 0.3
+      num_ctx: 16384
+      top_p: 0.9
+      top_k: 40
+      repeat_penalty: 1.1
+    use_cases:
+    - コード生成
+    - 複雑な分析
+    - アーキテクチャ設計
+  
+  qwen-coder-1.5b:
+    name: qwen2.5-coder:1.5b
+    description: 軽量で高速なコーディング特化モデル
+    options:
+      temperature: 0.2
+      num_ctx: 4096
+      top_p: 0.95
+      seed: 42
+    use_cases:
+    - 簡単なコード修正
+    - ドキュメント生成
+    - コードレビュー
+  
+  qwen-coder-7b:
+    name: qwen2.5-coder:7b
+    description: バランスの取れた中規模モデル
+    options:
+      temperature: 0.3
+      num_ctx: 8192
+      top_p: 0.9
+      repeat_penalty: 1.05
+    use_cases:
+    - 一般的なコード生成
+    - リファクタリング
+    - テスト作成
+  
+  deepseek-coder:
+    name: deepseek-coder:6.7b
+    description: コード生成に特化した高精度モデル
+    options:
+      temperature: 0.1
+      num_ctx: 16384
+      top_p: 0.95
+    use_cases:
+    - 高精度コード生成
+    - バグ修正
+    - コード最適化
+  
+  codellama-13b:
+    name: codellama:13b
+    description: Meta製の強力なコーディングモデル
+    options:
+      temperature: 0.4
+      num_ctx: 4096
+      top_p: 0.9
+    use_cases:
+    - Python開発
+    - アルゴリズム実装
+    - データ処理
+  
+  mistral-7b:
+    name: mistral:7b
+    description: 汎用的な中規模モデル
+    options:
+      temperature: 0.5
+      num_ctx: 8192
+      top_p: 0.9
+    use_cases:
+    - 一般的なテキスト生成
+    - 翻訳
+    - 要約
+
+task_recommendations:
+  code_generation: gpt-oss-20b
+  code_review: qwen-coder-1.5b
+  refactoring: qwen-coder-7b
+  bug_fix: deepseek-coder
+  documentation: qwen-coder-1.5b
+  translation: mistral-7b
+  complex_analysis: gpt-oss-20b
+  quick_fix: qwen-coder-1.5b
+
+performance:
+  auto_select:
+    enabled: true
+    rules:
+    - condition: task_size < 100
+      model: qwen-coder-1.5b
+    - condition: task_size < 500
+      model: qwen-coder-7b
+    - condition: task_size >= 500
+      model: gpt-oss-20b
+  fallback:
+    enabled: true
+    chain:
+    - gpt-oss-20b
+    - qwen-coder-7b
+    - qwen-coder-1.5b
+  cache:
+    enabled: true
+    ttl: 3600
+    max_size: 100
+logging:
+  level: INFO
+  detailed_prompts: false
+  save_responses: true
+  response_dir: .koubou/logs/ollama_responses

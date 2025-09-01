@@ -1,0 +1,222 @@
+# 工房システム中央設定ファイル
+# System-wide configuration for Koubou
+
+# システム基本設定
+system:
+  name: "koubou-system"
+  version: "1.0.0"
+  environment: "production"  # development, staging, production
+
+# パス設定
+paths:
+  koubou_home: "${KOUBOU_HOME:-.koubou}"
+  database: "${KOUBOU_HOME:-.koubou}/db/koubou.db"
+  logs: "${KOUBOU_HOME:-.koubou}/logs"
+  outputs: "${KOUBOU_HOME:-.koubou}/outputs"
+  pids: "${KOUBOU_HOME:-.koubou}/pids"
+  cache: "${KOUBOU_HOME:-.koubou}/cache"
+  # セキュリティ: 許可されたファイル操作ディレクトリ
+  allowed_dirs:
+    - "${KOUBOU_HOME:-.koubou}/outputs"
+    - "${KOUBOU_HOME:-.koubou}/workspaces"
+    - "/tmp/koubou"
+
+# データベース設定
+database:
+  type: "sqlite"
+  path: "${KOUBOU_HOME:-.koubou}/db/koubou.db"
+  pool_size: 10
+  max_overflow: 20
+  timeout: 30
+  retry_count: 3
+  retry_delay: 0.5
+  wal_mode: true
+  busy_timeout: 5000
+
+# API設定
+api:
+  mcp_server:
+    host: "0.0.0.0"
+    port: 8765
+    cors_enabled: true
+    cors_origins: ["http://localhost:*"]
+    health_check_interval: 30
+    
+  websocket:
+    host: "0.0.0.0"
+    port: 8766
+    ping_interval: 30
+    ping_timeout: 10
+    
+  graphql:
+    host: "0.0.0.0"
+    port: 8767
+    playground_enabled: true
+    introspection_enabled: true
+    
+  dashboard:
+    host: "0.0.0.0"
+    port: 8080
+    auto_refresh: 5  # seconds
+
+# ワーカー設定
+workers:
+  pool_size: 5
+  max_workers: 20
+  startup_timeout: 30
+  health_check_interval: 60
+  restart_on_failure: true
+  max_restart_attempts: 3
+  task_timeout: 600  # seconds
+  
+  # ワーカータイプ別設定
+  types:
+    local:
+      enabled: true
+      default_model: "gpt-oss:20b"
+      max_concurrent_tasks: 3
+    
+    distributed:
+      enabled: false
+      nodes: []  # Configure in distributed/nodes.yaml
+
+# ロギング設定
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # ログファイル設定
+  file:
+    enabled: true
+    path: "${KOUBOU_HOME:-.koubou}/logs/system.log"
+    max_size: 10485760  # 10MB
+    backup_count: 5
+    
+  # 詳細ログ設定
+  detailed:
+    sql_queries: false
+    api_requests: true
+    worker_activity: true
+    error_stack_traces: true
+
+# セキュリティ設定
+security:
+  # ファイル操作の制限
+  file_operations:
+    enabled: true
+    max_file_size: 104857600  # 100MB
+    allowed_extensions:
+      - ".py"
+      - ".js"
+      - ".ts"
+      - ".html"
+      - ".css"
+      - ".json"
+      - ".yaml"
+      - ".yml"
+      - ".md"
+      - ".txt"
+      - ".sh"
+    
+  # APIセキュリティ
+  api:
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 100
+      requests_per_hour: 1000
+    
+    authentication:
+      enabled: false  # Will be implemented later
+      token_expiry: 3600
+
+# パフォーマンス設定
+performance:
+  # キャッシュ設定
+  cache:
+    enabled: true
+    ttl: 3600  # seconds
+    max_entries: 1000
+    
+  # データベース最適化
+  database:
+    vacuum_on_startup: false
+    analyze_interval: 86400  # 24 hours
+    checkpoint_interval: 1000  # WAL checkpoint every N frames
+    
+  # メモリ管理
+  memory:
+    max_heap_size: 2048  # MB
+    gc_threshold: 80  # trigger GC at 80% memory usage
+
+# モニタリング設定
+monitoring:
+  enabled: true
+  
+  # メトリクス収集
+  metrics:
+    collect_interval: 60  # seconds
+    retention_days: 7
+    
+  # アラート設定
+  alerts:
+    enabled: false
+    channels: []  # email, slack, webhook
+    
+  # ヘルスチェック
+  health_checks:
+    database: true
+    api_endpoints: true
+    workers: true
+    disk_space: true
+    memory_usage: true
+
+# タスク設定
+tasks:
+  # デフォルト優先度
+  default_priority: 5
+  
+  # タスクタイプ別設定
+  types:
+    general:
+      timeout: 600
+      retry_count: 2
+      
+    code_generation:
+      timeout: 900
+      retry_count: 1
+      
+    analysis:
+      timeout: 1200
+      retry_count: 1
+      
+  # タスクキュー設定
+  queue:
+    max_size: 1000
+    processing_order: "priority"  # priority, fifo, lifo
+    
+# 開発設定
+development:
+  debug_mode: false
+  auto_reload: false
+  verbose_logging: false
+  mock_llm: false
+
+# 実験的機能
+experimental:
+  features:
+    auto_scaling: false
+    distributed_processing: false
+    gpu_acceleration: false
+    
+# 外部サービス統合
+integrations:
+  ollama:
+    config_file: "${KOUBOU_HOME:-.koubou}/config/ollama_models.yaml"
+    
+  github:
+    enabled: false
+    api_token: "${GITHUB_TOKEN}"
+    
+  slack:
+    enabled: false
+    webhook_url: "${SLACK_WEBHOOK_URL}"

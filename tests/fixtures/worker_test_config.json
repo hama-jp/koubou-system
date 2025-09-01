@@ -1,0 +1,57 @@
+{
+  "test_environment": {
+    "output_base_dir": "tests/outputs/worker_test_results",
+    "fixture_dir": "tests/fixtures",
+    "worker_timeout": 120,
+    "max_concurrent_tasks": 3,
+    "cleanup_after_test": false
+  },
+  "test_tasks": [
+    {
+      "name": "simple_text_generation",
+      "file": "worker_tasks/simple_text_generation.txt",
+      "priority": 5,
+      "expected_completion_time": 60,
+      "expected_result_type": "text",
+      "validation_criteria": ["length >= 100", "contains seasonal words"]
+    },
+    {
+      "name": "code_generation",
+      "file": "worker_tasks/code_generation.txt", 
+      "priority": 7,
+      "expected_completion_time": 90,
+      "expected_result_type": "code",
+      "validation_criteria": ["contains 'def calculate_fibonacci'", "contains docstring", "contains error handling"]
+    },
+    {
+      "name": "data_analysis",
+      "file": "worker_tasks/data_analysis.txt",
+      "priority": 8,
+      "expected_completion_time": 120,
+      "expected_result_type": "report",
+      "validation_criteria": ["markdown format", "contains monthly analysis", "contains recommendations"]
+    },
+    {
+      "name": "translation",
+      "file": "worker_tasks/translation.txt",
+      "priority": 6,
+      "expected_completion_time": 50,
+      "expected_result_type": "text",
+      "validation_criteria": ["contains English text", "technical terms translated", "maintains structure"]
+    },
+    {
+      "name": "error_handling",
+      "file": "worker_tasks/error_handling.txt",
+      "priority": 9,
+      "expected_completion_time": 30,
+      "expected_result_type": "error_response",
+      "validation_criteria": ["contains error message", "system stable", "proper error logging"]
+    }
+  ],
+  "performance_benchmarks": {
+    "average_task_completion_time": 70,
+    "success_rate_threshold": 0.80,
+    "error_recovery_time": 15,
+    "memory_usage_limit": "512MB"
+  }
+}

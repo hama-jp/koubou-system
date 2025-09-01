@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日めくりカレンダー ウィジェット</title>
+<link rel="stylesheet" href="daily-calendar.css">
+<style>
+  /* デモページ用のスタイル */
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  .demo-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+  }
+  h1 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+  p {
+    color: #666;
+    line-height: 1.8;
+  }
+  .feature-list {
+    list-style: none;
+    padding: 0;
+  }
+  .feature-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .feature-list li:before {
+    content: "✅ ";
+    margin-right: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="demo-content">
+  <h1>🗓️ 日めくりカレンダー ウィジェット</h1>
+  <p>画面右下に固定表示される、おしゃれな日めくりカレンダーウィジェットです。</p>
+  
+  <h2>機能</h2>
+  <ul class="feature-list">
+    <li>今日の日付を大きく表示</li>
+    <li>曜日の色分け（土曜:青、日曜・祝日:赤）</li>
+    <li>六曜表示（大安、仏滅など）</li>
+    <li>グラスモーフィズムデザイン</li>
+    <li>ダークモード自動対応</li>
+    <li>ホバーアニメーション</li>
+    <li>レスポンシブ対応</li>
+  </ul>
+  
+  <h2>使い方</h2>
+  <p>このウィジェットは画面右下に固定表示されます。<br>
+  任意のWebページに組み込むには、以下のファイルを読み込んでください：</p>
+  <ul>
+    <li>daily-calendar.css</li>
+    <li>daily-calendar.js</li>
+    <li>HTMLに必要な要素を追加</li>
+  </ul>
+  
+  <h2>カスタマイズ</h2>
+  <p>CSSのCSS変数を調整することで、色やサイズをカスタマイズできます。</p>
+</div>
+
+<!-- 日めくりカレンダーウィジェット -->
+<div id="daily-calendar-widget">
+  <div class="header">
+    <span id="month-year"></span>
+  </div>
+  <div class="date-container">
+    <span id="date-number" class="date-number"></span>
+    <span id="weekday" class="weekday"></span>
+  </div>
+  <div class="footer">
+    <span id="sixyo" class="sixyo"></span>
+  </div>
+</div>
+<script src="daily-calendar.js"></script>
+</body>
+</html>

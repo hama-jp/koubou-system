@@ -1,0 +1,8 @@
+{
+  "task_id": "demo_20250831_180000_000001",
+  "task_name": "translation",
+  "timestamp": "20250831_180104",
+  "success": true,
+  "output_file": "tests/outputs/file_output_demo/translation/demo_20250831_180000_000001_translation.txt",
+  "result_length": 100
+}
